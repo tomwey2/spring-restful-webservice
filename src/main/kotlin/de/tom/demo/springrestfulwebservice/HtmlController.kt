@@ -12,7 +12,7 @@ class HtmlController {
     @GetMapping(path = ["/hello"])
     fun blog(model: Model): String {
         model["title"] = "Blog"
-        return "<h1>Blog</h1>"
+        return "<h1>Hello</h1>"
     }
 
 }
