@@ -11,6 +11,12 @@ import java.time.LocalDateTime
 
 @Configuration
 class DataConfiguration {
+    val testTasks = listOf(
+        Task(null, "Food shopping", LocalDateTime.of(2022, 2, 24, 18, 0), true),
+        Task(null, "Doctor appointment", LocalDateTime.of(2022, 2, 24, 18, 0), true),
+        Task(null, "School party preparation", LocalDateTime.of(2022, 2, 24, 18, 0), true),
+    )
+
     @Bean
     fun databaseInitializer(
         userRepository: UserRepository,
@@ -19,12 +25,10 @@ class DataConfiguration {
         val johnDoe = userRepository.save(User(null, "John", "Doe", "john.doe@test.com"))
         val janeDoe = userRepository.save(User(null, "Jane", "Doe", "jane.doe@test.com"))
 
-        taskRepository.save(Task(null, "Food shopping",
-            LocalDateTime.of(2022, 2, 24, 18, 0), true))
-        taskRepository.save(Task(null, "Doctor appointment",
-            LocalDateTime.of(2022, 2, 24, 18, 0), true))
-        taskRepository.save(Task(null, "School party preparation",
-            LocalDateTime.of(2022, 2, 24, 18, 0), true))
+        testTasks.map {
+            taskRepository.save(it)
+        }
     }
 
 }
+

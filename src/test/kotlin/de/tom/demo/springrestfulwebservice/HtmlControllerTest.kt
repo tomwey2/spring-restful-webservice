@@ -1,31 +1,33 @@
 package de.tom.demo.springrestfulwebservice
 
+import de.tom.demo.springrestfulwebservice.entities.tasks.TaskController
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.client.getForEntity
+import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers
 
 /**
- * Testing with a mocked environment.
+ * Testing web endpoints using MockMvc.
+ * Testing within a mocked environment is usually faster than running with a full servlet container.
  * By default, @SpringBootTest does not start the server but instead sets up a mock environment
  * for testing web endpoints.
- * With Spring MVC, we can query our web endpoints using MockMvc.
- * Testing within a mocked environment is usually faster than running with a full servlet container.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class HtmlControllerMockedTest {
+class HtmlControllerMockedTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
-    fun testWithMockMvc(@Autowired mvc: MockMvc) {
-        mvc.perform(MockMvcRequestBuilders.get("/hello"))
+    fun testWithMockMvc() {
+        mockMvc.perform(MockMvcRequestBuilders.get("/hello"))
             .andExpect(MockMvcResultMatchers.status().isOk)
             .andExpect(MockMvcResultMatchers.content().string("<h1>Hello</h1>"))
     }
@@ -38,13 +40,29 @@ class HtmlControllerMockedTest {
  * Using Spring Boot's TestRestTemplate.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class HtmlControllerIntegrationTest(@Autowired val client: TestRestTemplate) {
+class HtmlControllerIntegrationTest(@Autowired val client: TestRestTemplate, @LocalServerPort val port: Int) {
 
     @Test
     fun `Assert blog page title, content and status code`() {
-        val entity = client.getForEntity<String>("/hello")
+        val url = "http://localhost:${port}/hello"
+        val entity = client.getForEntity<String>(url)
         Assertions.assertThat(entity.statusCode).isEqualTo(HttpStatus.OK)
         Assertions.assertThat(entity.body).contains("<h1>Hello</h1>")
     }
 }
 
+/**
+ * Testing only the web layer
+ * Spring Boot instantiates only the web layer rather than the whole context.
+ */
+@WebMvcTest(controllers = [HtmlController::class])
+class HtmlControllerWebLayerTest(@Autowired val mockMvc: MockMvc) {
+
+    @Test
+    fun testWithMockMvc() {
+        mockMvc.perform(MockMvcRequestBuilders.get("/hello"))
+            .andExpect(MockMvcResultMatchers.status().isOk)
+            .andExpect(MockMvcResultMatchers.content().string("<h1>Hello</h1>"))
+    }
+
+}

@@ -2,6 +2,7 @@ package de.tom.demo.springrestfulwebservice.entities.tasks
 
 import de.tom.demo.springrestfulwebservice.entities.Task
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
@@ -29,9 +30,10 @@ class TaskController(val service: TaskService) {
     // POST a new task
     // http://localhost:8080/tasks/
     @PostMapping(path = ["/tasks"])
-    fun post(@RequestBody task: Task) {
+    @ResponseStatus(HttpStatus.CREATED)
+    fun post(@RequestBody task: Task) : Task {
         log.info("add task: $task")
-        service.addTask(task)
+        return service.addTask(task)
     }
 
     // Remove/Delete task by id
@@ -45,8 +47,8 @@ class TaskController(val service: TaskService) {
     // PUT — Update task details by id
     // http://localhost:88080/tasks/{id}
     @PutMapping(path = ["/tasks/{id}"])
-    fun put(@PathVariable id: String, @RequestBody task: Task) {
+    fun put(@PathVariable id: String, @RequestBody task: Task) : Task {
         log.info("change task with id=$id new=$task")
-        service.updateTask(id, task)
+        return service.updateTask(id, task)
     }
 }
