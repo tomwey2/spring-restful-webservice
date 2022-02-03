@@ -23,7 +23,6 @@ import org.springframework.context.annotation.Bean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
-import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
@@ -72,7 +71,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test GET /tasks")
+    @DisplayName("Unit test for GET /tasks")
     fun getAll() {
         val json = mockMvc.perform(get("/tasks/"))
             //.andDo(MockMvcResultHandlers.print())
@@ -89,7 +88,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test GET /tasks/{id} with existing id")
+    @DisplayName("Unit test for GET /tasks/{id} with existing id")
     fun getById() {
         val idExist = testData[0].id
         val json = mockMvc.perform(get("/tasks/${idExist}"))
@@ -101,7 +100,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test GET /tasks/{id} with id that not exist")
+    @DisplayName("Unit test for GET /tasks/{id} with id that not exist")
     fun failedGetById() {
         val result = mockMvc.perform(get("/tasks/${idNotExist}"))
             //.andDo(MockMvcResultHandlers.print())
@@ -112,7 +111,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test POST /tasks/")
+    @DisplayName("Unit test for POST /tasks/")
     fun post() {
         val json = mockMvc.perform(post("/tasks")
             .contentType(MediaType.APPLICATION_JSON)
@@ -128,7 +127,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Test the REST API: DELETE /tasks/{id}")
+    @DisplayName("Unit test for DELETE /tasks/{id}")
     fun delete() {
         val idExist = testData[0].id
         mockMvc.perform(
@@ -139,7 +138,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test DELETE /tasks/{id} with id that not exists")
+    @DisplayName("Unit test for DELETE /tasks/{id} with id that not exists")
     fun failedDelete() {
 
         mockMvc.perform(
@@ -150,7 +149,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Test PUT /tasks/{id}")
+    @DisplayName("Unit test for PUT /tasks/{id}")
     fun put() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
 
@@ -171,7 +170,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("test PUT /tasks/{id} with id that not exists")
+    @DisplayName("Unit test for PUT /tasks/{id} with id that not exists")
     fun failedPut() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
 
