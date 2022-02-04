@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*
 /**
  * REST Controller with GET, POST, PUT and DELETE methods.
  */
+@CrossOrigin(origins = ["http://localhost:3000"])
 @RestController
 class TaskController(val service: TaskService) {
     private val log = LoggerFactory.getLogger(this.javaClass)
