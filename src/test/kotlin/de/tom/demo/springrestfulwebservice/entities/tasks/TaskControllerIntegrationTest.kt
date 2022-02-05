@@ -20,12 +20,12 @@ import kotlin.random.Random
 
 /**
  * Integration tests of the TaskController
+ * using the TestRestTemplate of the Spring Boot Test Framework
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     @LocalServerPort val port: Int, @Autowired val objectMapper: ObjectMapper,
                                     @Autowired val service: TaskService) {
-
 
     @BeforeAll
     fun setUp() {
@@ -111,10 +111,9 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
-        val json = """{"text": "Updated Task", "day": "2022-03-01 12:45:00.000.00.0", "reminder": false}"""
-        val request = HttpEntity<String>(json, headers)
-        println(url)
-        println(request)
+        val requestBody = """{"text": "Updated Task", "day": "2022-03-01 12:45:00.000.00.0", "reminder": false}"""
+
+        val request = HttpEntity<String>(requestBody, headers)
         val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
 
         Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
