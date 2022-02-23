@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### own entries ###
-data/
+/data/
