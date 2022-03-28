@@ -26,6 +26,7 @@ import kotlin.random.Random
 class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     @LocalServerPort val port: Int, @Autowired val objectMapper: ObjectMapper,
                                     @Autowired val service: TaskService) {
+    val endpoint = "/api/tasks"
 
     @BeforeAll
     fun setUp() {
@@ -40,10 +41,10 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     }
 
     @Test
-    @DisplayName("integration test for GET /tasks")
+    @DisplayName("integration test for GET /api/tasks")
     fun getAll() {
         val initialTasks: List<Task> = service.getTasks()
-        val url = "http://localhost:${port}/tasks"
+        val url = "http://localhost:${port}$endpoint/"
 
         val response = client.getForEntity<String>(url)
         val result: List<Task> = objectMapper.readValue(response.body.toStr())
@@ -53,11 +54,11 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     }
 
     @Test
-    @DisplayName("integration test for GET /tasks/{id}")
+    @DisplayName("integration test for GET /api/tasks/{id}")
     fun getById() {
         val initialTasks: List<Task> = service.getTasks()
         val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}/tasks/${testTask.id}"
+        val url = "http://localhost:${port}$endpoint/${testTask.id}/"
 
         val response = client.getForEntity<String>(url)
         val result: Task = objectMapper.readValue(response.body.toStr())
@@ -67,10 +68,10 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     }
 
     @Test
-    @DisplayName("integration test for POST /tasks/")
+    @DisplayName("integration test for POST /api/tasks/")
     fun post() {
         val initialTasks: List<Task> = service.getTasks()
-        val url = "http://localhost:${port}/tasks"
+        val url = "http://localhost:${port}$endpoint/"
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
@@ -92,7 +93,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     fun delete() {
         val initialTasks: List<Task> = service.getTasks()
         val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}/tasks/${testTask.id}"
+        val url = "http://localhost:${port}$endpoint/${testTask.id}"
 
         client.delete(url)
         val updatedTasks: List<Task> = service.getTasks()
@@ -103,11 +104,11 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
     }
 
     @Test
-    @DisplayName("integration test for PUT /tasks/")
+    @DisplayName("integration test for PUT /api/tasks/")
     fun put() {
         val initialTasks: List<Task> = service.getTasks()
         val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}/tasks/${testTask.id}"
+        val url = "http://localhost:${port}$endpoint/${testTask.id}"
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON

@@ -7,3 +7,6 @@ import java.lang.RuntimeException
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
 class TaskNotFoundException(val id : String) : RuntimeException("Task not found: $id")
 
+@ResponseStatus(value = HttpStatus.BAD_REQUEST)
+class TaskNotValidException(val error : String) : RuntimeException(error)
+

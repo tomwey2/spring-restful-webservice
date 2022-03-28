@@ -33,6 +33,7 @@ import java.util.*
 @AutoConfigureMockMvc
 @ExtendWith(MockKExtension::class)
 class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectMapper: ObjectMapper) {
+    val endpoint = "/api/tasks"
     val idNotExist = "5678"
     var testData= listOf<Task>()
     val testTask = Task(null, "New Task",
@@ -71,9 +72,9 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Unit test for GET /tasks")
+    @DisplayName("Unit test for GET api/tasks/")
     fun getAll() {
-        val json = mockMvc.perform(get("/tasks/"))
+        val json = mockMvc.perform(get("$endpoint/"))
             //.andDo(MockMvcResultHandlers.print())
             .andExpect(status().isOk)
             .andReturn()
@@ -91,7 +92,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     @DisplayName("Unit test for GET /tasks/{id} with existing id")
     fun getById() {
         val idExist = testData[0].id
-        val json = mockMvc.perform(get("/tasks/${idExist}"))
+        val json = mockMvc.perform(get("$endpoint/${idExist}"))
             .andExpect(status().isOk)
             .andReturn()
 
@@ -102,7 +103,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     @Test
     @DisplayName("Unit test for GET /tasks/{id} with id that not exist")
     fun failedGetById() {
-        val result = mockMvc.perform(get("/tasks/${idNotExist}"))
+        val result = mockMvc.perform(get("$endpoint/${idNotExist}"))
             //.andDo(MockMvcResultHandlers.print())
             .andExpect(status().isNotFound)
             .andReturn()
@@ -111,9 +112,9 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Unit test for POST /tasks/")
+    @DisplayName("Unit test for POST /api/tasks/")
     fun post() {
-        val json = mockMvc.perform(post("/tasks")
+        val json = mockMvc.perform(post("$endpoint/")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testTask)))
             //.andDo(MockMvcResultHandlers.print())
@@ -127,35 +128,35 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Unit test for DELETE /tasks/{id}")
+    @DisplayName("Unit test for DELETE /api/tasks/{id}")
     fun delete() {
         val idExist = testData[0].id
         mockMvc.perform(
-            delete("/tasks/${idExist}"))
+            delete("$endpoint/${idExist}"))
             //.andDo(MockMvcResultHandlers.print())
             .andExpect(status().is2xxSuccessful)
             .andReturn()
     }
 
     @Test
-    @DisplayName("Unit test for DELETE /tasks/{id} with id that not exists")
+    @DisplayName("Unit test for DELETE /api/tasks/{id} with id that not exists")
     fun failedDelete() {
 
         mockMvc.perform(
-            delete("/tasks/${idNotExist}"))
+            delete("$endpoint/${idNotExist}"))
             //.andDo(MockMvcResultHandlers.print())
             .andExpect(status().isNotFound)
 
     }
 
     @Test
-    @DisplayName("Unit test for PUT /tasks/{id}")
+    @DisplayName("Unit test for PUT /api/tasks/{id}")
     fun put() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
 
         val idExist = testData[0].id
         val json = mockMvc.perform(
-            put("/tasks/${idExist}")
+            put("$endpoint/${idExist}")
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testTask)))
             //.andDo(MockMvcResultHandlers.print())
@@ -170,12 +171,12 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
 
     @Test
-    @DisplayName("Unit test for PUT /tasks/{id} with id that not exists")
+    @DisplayName("Unit test for PUT /api/tasks/{id} with id that not exists")
     fun failedPut() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
 
         mockMvc.perform(
-            put("/tasks/${idNotExist}")
+            put("$endpoint/${idNotExist}")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testTask)))
             //.andDo(MockMvcResultHandlers.print())
