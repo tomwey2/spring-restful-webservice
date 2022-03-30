@@ -4,7 +4,8 @@ import de.tom.demo.springrestfulwebservice.TaskNotFoundException
 import de.tom.demo.springrestfulwebservice.entities.Task
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
-import org.assertj.core.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -28,7 +29,7 @@ class TaskServiceTest {
     val idNotExist = "5678"
 
     val repository = mockk<TaskRepository>()
-    val underTest = TaskService(repository);
+    val underTest = TaskService(repository)
 
     @BeforeAll
     fun setup() {
@@ -52,20 +53,20 @@ class TaskServiceTest {
     @Test
     @DisplayName("Test the getTask(id) with existing id")
     fun getTask() {
-        Assertions.assertThat(underTest.getTask(idExist)).isEqualTo(testTask)
+        assertEquals(testTask, underTest.getTask(idExist))
     }
 
     @Test()
     @DisplayName("Test the getTask(id) with not existing id")
     fun failedGetTask() {
-        Assertions.assertThatThrownBy { underTest.getTask("") }.isInstanceOf(TaskNotFoundException::class.java)
-        Assertions.assertThatThrownBy { underTest.getTask(idNotExist) }.isInstanceOf(TaskNotFoundException::class.java)
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTask("") }
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTask(idNotExist) }
     }
 
     @Test
     @DisplayName("Test the addTask(task)")
     fun addTask() {
-        Assertions.assertThat(underTest.addTask(testTask)).isEqualTo(testTask)
+        assertEquals(testTask, underTest.addTask(testTask))
     }
 
     @Test
@@ -77,23 +78,20 @@ class TaskServiceTest {
     @Test()
     @DisplayName("Test the deleteTask(id) with not existing id")
     fun failedDeleteTask() {
-        Assertions.assertThatThrownBy { underTest.deleteTask("") }
-            .isInstanceOf(TaskNotFoundException::class.java)
-        Assertions.assertThatThrownBy { underTest.deleteTask(idNotExist) }
-            .isInstanceOf(TaskNotFoundException::class.java)
+        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTask("") }
+        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTask(idNotExist) }
     }
 
     @Test
     @DisplayName("Test the updateTask(id) with existing id")
     fun updateTask() {
-        Assertions.assertThat(underTest.updateTask(idExist, testTask)).isEqualTo(testTask)
+        assertEquals(testTask, underTest.updateTask(idExist, testTask))
     }
 
     @Test
     @DisplayName("Test the updateTask(id) with not existing id")
     fun failedUpdateTask() {
-        Assertions.assertThatThrownBy { underTest.updateTask(idNotExist, testTask) }
-            .isInstanceOf(TaskNotFoundException::class.java)
+        assertThrows( TaskNotFoundException::class.java) { underTest.updateTask(idNotExist, testTask) }
     }
 
 }
