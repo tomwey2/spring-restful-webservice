@@ -17,7 +17,7 @@ data class Task(
 @Table("USERS")
 data class User(
     @Id val id: String?,
-    val firstName: String,
-    val lastName: String,
-    val email: String
+    val name: String,
+    val email: String,
+    val password: String
 )
