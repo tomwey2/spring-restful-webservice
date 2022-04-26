@@ -1,6 +1,5 @@
 package de.tom.demo.springrestfulwebservice
 
-import de.tom.demo.springrestfulwebservice.entities.tasks.TaskController
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired

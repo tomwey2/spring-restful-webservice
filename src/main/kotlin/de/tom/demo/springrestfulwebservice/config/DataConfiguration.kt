@@ -26,7 +26,6 @@ class DataConfiguration {
         val janeDoe = userRepository.save(User(null, "Jane Doe", "jane.doe@test.com", "1234"))
 
         testTasks.map {
-            println("save tasks ${it.text}")
             taskRepository.save(it)
         }
     }

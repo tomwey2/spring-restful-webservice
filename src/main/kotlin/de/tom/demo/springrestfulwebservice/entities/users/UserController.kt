@@ -1,6 +1,5 @@
 package de.tom.demo.springrestfulwebservice.entities.users
 
-import de.tom.demo.springrestfulwebservice.entities.Task
 import de.tom.demo.springrestfulwebservice.entities.User
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
@@ -15,15 +14,17 @@ class UserController(val service: UserService) {
     @ResponseStatus(HttpStatus.OK)
     fun getAll(): List<User> = service.getUsers()
 
-    @PostMapping(path = ["/"])
-    @ResponseStatus(HttpStatus.CREATED)
-    fun register(@RequestBody user: User) : ResponseMessage = ResponseMessage("Register user: ${user.name}");
+    /*
+    @GetMapping(path = ["/me"])
+    @ResponseStatus(HttpStatus.OK)
+    fun getMe(@RequestHeader("authorization") header: String): User {
+        if (header.isNullOrEmpty() && !header.startsWith("Bearer"))
+            throw CredentialsNotValidException("no token found")
+        val token = header.split(" ")[1]
 
-    @PostMapping(path = ["/login"])
-    @ResponseStatus(HttpStatus.CREATED)
-    fun login(@RequestBody data: LoginForm) : String = "Login user: ${data.email}";
+    }
+     */
 }
 
 class ResponseMessage(val message: String)
 
-class LoginForm(val email: String, val password: String)

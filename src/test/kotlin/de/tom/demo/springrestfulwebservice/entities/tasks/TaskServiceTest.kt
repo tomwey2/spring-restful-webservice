@@ -23,18 +23,18 @@ import java.time.LocalDateTime
 // @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockKExtension::class)
 class TaskServiceTest {
-    val testTask = Task("4711", "New Task",
+    private val testTask = Task("4711", "New Task",
         LocalDateTime.of(2022, 2, 24, 18, 0), true)
-    val idExist = testTask.id ?: ""
-    val idNotExist = "5678"
+    private val idExist = testTask.id ?: ""
+    private val idNotExist = "5678"
 
-    val repository = mockk<TaskRepository>()
-    val underTest = TaskService(repository)
+    private val repository = mockk<TaskRepository>()
+    private val underTest = TaskService(repository)
 
     @BeforeAll
     fun setup() {
         println(">> Mocking the repository calls with test data")
-        every { repository.findTasks() } returns listOf<Task>()
+        every { repository.findTasks() } returns listOf()
         every { repository.findByIdOrNull("") } returns null
         every { repository.findByIdOrNull(idNotExist) } returns null
         every { repository.findByIdOrNull(idExist) } returns testTask
@@ -56,7 +56,7 @@ class TaskServiceTest {
         assertEquals(testTask, underTest.getTask(idExist))
     }
 
-    @Test()
+    @Test
     @DisplayName("Test the getTask(id) with not existing id")
     fun failedGetTask() {
         assertThrows( TaskNotFoundException::class.java) { underTest.getTask("") }
@@ -75,7 +75,7 @@ class TaskServiceTest {
         justRun { underTest.deleteTask(idExist) }
     }
 
-    @Test()
+    @Test
     @DisplayName("Test the deleteTask(id) with not existing id")
     fun failedDeleteTask() {
         assertThrows( TaskNotFoundException::class.java) { underTest.deleteTask("") }

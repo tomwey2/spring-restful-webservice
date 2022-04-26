@@ -1,6 +1,7 @@
 package de.tom.demo.springrestfulwebservice.entities
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import java.time.LocalDateTime
@@ -19,5 +20,6 @@ data class User(
     @Id val id: String?,
     val name: String,
     val email: String,
+    @JsonIgnore
     val password: String
 )

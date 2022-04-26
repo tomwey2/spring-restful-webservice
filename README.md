@@ -1,6 +1,6 @@
 # Task Tracker REST API
-This project implements a REST API server that manages tasks for a tasks tracker system.
-The tasks are stored in a H2 in-memory database. 
+This project implements a REST API server that manages tasks for a task's tracker system.
+The tasks are stored in an H2 in-memory database. 
 
 ## Usage
 Build the application with gradle:
@@ -27,13 +27,13 @@ Example JSON data:
 
 ### REST API
 
-| Method | URL | Action  |
-|---| --- |--- | 
-| GET   | /tasks | get all tasks from database |
-| GET   | /tasks/{id} | get task details based on id |
-| POST  | /tasks | create a new task |
-| DELETE | /tasks/{id} | remove/delete task by id |
-| PUT   | /tasks/{id} | update task details by id |
+| Method | URL         | Action                       |
+|--------|-------------|------------------------------|
+| GET    | /tasks      | get all tasks from database  |
+| GET    | /tasks/{id} | get task details based on id |
+| POST   | /tasks      | create a new task            |
+| DELETE | /tasks/{id} | remove/delete task by id     |
+| PUT    | /tasks/{id} | update task details by id    |
 
 
 
