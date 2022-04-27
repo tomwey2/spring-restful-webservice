@@ -1,5 +1,8 @@
 package de.tom.demo.springrestfulwebservice
 
+import de.tom.demo.springrestfulwebservice.entities.users.UserController
+import de.tom.demo.springrestfulwebservice.entities.users.UserRepository
+import de.tom.demo.springrestfulwebservice.entities.users.UserService
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -9,6 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.client.getForEntity
 import org.springframework.boot.web.server.LocalServerPort
+import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.ComponentScan
+import org.springframework.context.annotation.FilterType
 import org.springframework.http.HttpStatus
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
@@ -54,7 +60,9 @@ class HtmlControllerIntegrationTest(@Autowired val client: TestRestTemplate, @Lo
  * Testing only the web layer
  * Spring Boot instantiates only the web layer rather than the whole context.
  */
-@WebMvcTest(controllers = [HtmlController::class])
+@WebMvcTest(controllers = [HtmlController::class], useDefaultFilters = false,
+    includeFilters = [ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = [HtmlController::class])]
+)
 class HtmlControllerWebLayerTest(@Autowired val mockMvc: MockMvc) {
 
     @Test
