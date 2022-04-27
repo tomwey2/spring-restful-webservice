@@ -10,7 +10,9 @@ import org.springframework.context.annotation.Bean
 class Application {
 	@Bean
 	fun init(userService: UserService) = CommandLineRunner {
-		userService.registerUser(name="abc", email = "abc@bcd", password = "1234")
+		userService.registerUser("John Doe", "john.doe@test.com", "1234")
+		userService.registerUser("Jane Doe", "jane.doe@test.com", "1234")
+		userService.registerUser("Admin", "admin@test.com", "1234", "ROLE_ADMIN")
 	}
 }
 

@@ -20,11 +20,13 @@ class TaskNotValidException(error : String) : RuntimeException(error)
 
 
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-class UserNotFoundException(id: String) : RuntimeException("User not found: $id")
+class UserNotFoundException(username: String) : RuntimeException("User $username not found.")
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-class UserAlreadyExistException(email: String) : RuntimeException("User already exist: $email")
+class UserAlreadyExistException(username: String) : RuntimeException("User $username already exist.")
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
 class CredentialsNotValidException(error : String) : RuntimeException(error)
 
+@ResponseStatus(value = HttpStatus.UNAUTHORIZED)
+class UserAuthenticationFailedException() : RuntimeException("Cannot authentication user")

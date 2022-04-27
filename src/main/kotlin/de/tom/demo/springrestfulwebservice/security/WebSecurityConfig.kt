@@ -11,6 +11,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 
 /**
@@ -21,7 +22,8 @@ import org.springframework.security.config.http.SessionCreationPolicy
 @Configuration
 @EnableWebSecurity
 class WebSecurityConfig(private val userService: UserService,
-                        private val passwordEncoder: PasswordEncoder
+                        private val passwordEncoder: PasswordEncoder,
+                        private val unauthorizedHandler: AuthEntryPointJwt
 ): WebSecurityConfigurerAdapter() {
 
 
@@ -32,28 +34,34 @@ class WebSecurityConfig(private val userService: UserService,
      */
     override fun configure(http: HttpSecurity?) {
         val authenticationManager = authenticationManagerBean()
-        val authenticationFilter = UserAuthenticationFilter(authenticationManager)
-        //userAuthenticationFilter.setFilterProcessesUrl("/api/users/login")
+        val authenticationJwtFilter = UserAuthenticationJwtFilter(authenticationManager)
+        val authorizationJwtFilter = UserAuthorizationJwtFilter()
+
         if (http != null) {
 
             http.csrf().disable()
-            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+            http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
             http.authorizeRequests()
-                .antMatchers("/", "/hello", "/api/tasks/**",
-                    "/api/users/",
-                    "/register", "/login").permitAll()
-                .antMatchers().hasRole("User")
-                .antMatchers().hasRole("Admin")
+                .antMatchers("/register", "/login").permitAll()
+                .antMatchers("/hello", "/api/tasks/**").permitAll()
+                .antMatchers("/api/users/me").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .antMatchers("/api/users/").hasAnyAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
 
-            http.addFilter(authenticationFilter)
-
+            http.addFilterBefore(authenticationJwtFilter, UserAuthenticationJwtFilter::class.java)
+            http.addFilterBefore(authorizationJwtFilter, UsernamePasswordAuthenticationFilter::class.java)
         };
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
-        auth.authenticationProvider(daoAuthenticationProvider());
+        auth.authenticationProvider(daoAuthenticationProvider())
+    }
+
+    @Bean
+    override fun authenticationManagerBean(): AuthenticationManager {
+        return super.authenticationManagerBean()
     }
 
     @Bean
@@ -63,12 +71,6 @@ class WebSecurityConfig(private val userService: UserService,
         provider.setUserDetailsService(userService)
         return provider
     }
-
-    @Bean
-    override fun authenticationManagerBean(): AuthenticationManager {
-        return super.authenticationManagerBean()
-    }
-
 }
 
 // http

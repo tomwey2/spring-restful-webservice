@@ -1,7 +1,6 @@
 package de.tom.demo.springrestfulwebservice.config
 
 import de.tom.demo.springrestfulwebservice.entities.Task
-import de.tom.demo.springrestfulwebservice.entities.User
 import de.tom.demo.springrestfulwebservice.entities.tasks.TaskRepository
 import de.tom.demo.springrestfulwebservice.entities.users.UserRepository
 import org.springframework.boot.ApplicationRunner
@@ -21,10 +20,6 @@ class DataConfiguration {
     fun databaseInitializer(
         userRepository: UserRepository,
         taskRepository: TaskRepository) = ApplicationRunner {
-
-        val johnDoe = userRepository.save(User(null, "John Doe", "john.doe@test.com", "1234"))
-        val janeDoe = userRepository.save(User(null, "Jane Doe", "jane.doe@test.com", "1234"))
-
         testTasks.map {
             taskRepository.save(it)
         }

@@ -21,11 +21,17 @@ fun createToken(user: User, expired: Long, url: String) =
         .sign(algorithm)
 
 
+fun validateJwtToken(token: String): Boolean {
+    val verifier: JWTVerifier = JWT.require(algorithm).build()
+    verifier.verify(token)
+    return true
+}
+
 fun verifyToken(token: String): UsernamePasswordAuthenticationToken {
     val verifier: JWTVerifier = JWT.require(algorithm).build()
     val decodedJwt: DecodedJWT = verifier.verify(token)
     val username = decodedJwt.subject
-    val roles = decodedJwt.getClaim("roles").asArray(String.javaClass)
+    val roles: Array<String> = decodedJwt.getClaim("roles").asArray(String::class.java)
     val authorities: kotlin.collections.Collection<SimpleGrantedAuthority> =
         Array(roles.size) { i -> SimpleGrantedAuthority(roles[i].toString()) }.toList()
     return UsernamePasswordAuthenticationToken(username, null, authorities)

@@ -21,5 +21,6 @@ data class User(
     val name: String,
     val email: String,
     @JsonIgnore
-    val password: String
+    val password: String,
+    val role: String
 )
