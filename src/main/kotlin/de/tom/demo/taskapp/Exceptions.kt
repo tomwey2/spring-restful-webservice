@@ -30,3 +30,11 @@ class CredentialsNotValidException(error : String) : RuntimeException(error)
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
 class UserAuthenticationFailedException() : RuntimeException("Cannot authentication user")
+
+/**
+ * Exception handler for project not found. It responds the 404 NOT FOUND status with
+ * the message, which project (id) was not found.
+ */
+@ResponseStatus(value = HttpStatus.NOT_FOUND)
+class ProjectNotFoundException(id : String) : RuntimeException("Project not found: $id")
+

@@ -1,7 +1,10 @@
 package de.tom.demo.taskapp.entities.tasks
 
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotFoundException
+import de.tom.demo.taskapp.entities.Project
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.User
 import io.mockk.*
 import io.mockk.junit5.MockKExtension
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.springframework.data.repository.findByIdOrNull
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -23,8 +27,11 @@ import java.time.LocalDateTime
 // @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockKExtension::class)
 class TaskServiceTest {
-    private val testTask = Task("4711", "New Task",
-        LocalDateTime.of(2022, 2, 24, 18, 0), true)
+    val testUser = User("u1", "test", "1234", "test@test.com", Constants.ROLE_USER)
+    val testProject = Project("p1", "test")
+    val testTask = Task("4711", "New Task", "",
+        LocalDate.now(), true, Constants.TASK_CLOSED, null, listOf<User>(testUser), testUser, testProject)
+
     private val idExist = testTask.id ?: ""
     private val idNotExist = "5678"
 
@@ -85,13 +92,14 @@ class TaskServiceTest {
     @Test
     @DisplayName("Test the updateTask(id) with existing id")
     fun updateTask() {
-        assertEquals(testTask, underTest.updateTask(idExist, testTask))
+        assertEquals(testTask, underTest.updateTask(idExist, testTask.text, testTask.day, testTask.reminder))
     }
 
     @Test
     @DisplayName("Test the updateTask(id) with not existing id")
     fun failedUpdateTask() {
-        assertThrows( TaskNotFoundException::class.java) { underTest.updateTask(idNotExist, testTask) }
+        assertThrows( TaskNotFoundException::class.java) {
+            underTest.updateTask(idNotExist, testTask.text, testTask.day, testTask.reminder) }
     }
 
 }
