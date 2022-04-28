@@ -1,1 +1,1 @@
-rootProject.name = "spring-restful-webservice"
+rootProject.name = "spring-task-tracker-rest"
