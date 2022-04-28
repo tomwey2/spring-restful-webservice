@@ -4,6 +4,7 @@ import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.entities.Task
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 /**
  * Tasks service class with business functions to add, update and delete a tasks.
@@ -22,8 +23,8 @@ class TaskService(val db: TaskRepository) {
         db.delete(task)
     }
 
-    fun updateTask(id: String, task: Task): Task {
-        val updatedTask = getTask(id).copy(text = task.text, day = task.day, reminder = task.reminder)
+    fun updateTask(id: String, text: String, day: LocalDate, reminder: Boolean): Task {
+        val updatedTask = getTask(id).copy(text = text, day = day, reminder = reminder)
         return db.save(updatedTask)
     }
 }

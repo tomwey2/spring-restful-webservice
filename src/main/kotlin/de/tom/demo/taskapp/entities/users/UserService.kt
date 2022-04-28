@@ -21,6 +21,7 @@ class UserService(val db: UserRepository, val passwordEncoder: PasswordEncoder):
 
     fun getUser(id: String): User = db.findByIdOrNull(id) ?: throw  UserNotFoundException(id)
 
+    fun getUserByEmail(email: String): User = db.findUserByEmail(email) ?: throw  UserNotFoundException(email)
     fun registerUser(name: String, email: String, password: String, role: String = "ROLE_USER"): User {
         log.info("Register user $name with role $role")
         // check if user exists
@@ -28,7 +29,7 @@ class UserService(val db: UserRepository, val passwordEncoder: PasswordEncoder):
             // hash the password, because here is it open
             val hashedPassword = encoder.encode(password)
             // create the user and save it in the database
-            return db.save(User(null, name, email, hashedPassword, role))
+            return db.save(User(null, name, hashedPassword, email, role))
         } else
             throw UserAlreadyExistException(email)
     }

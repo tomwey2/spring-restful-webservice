@@ -2,7 +2,10 @@ package de.tom.demo.taskapp.entities.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.projects.ProjectService
+import de.tom.demo.taskapp.entities.users.UserService
 import io.mockk.InternalPlatformDsl.toStr
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.AfterAll
@@ -15,6 +18,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.boot.test.web.client.getForEntity
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
+import org.springframework.web.bind.annotation.RequestParam
+import java.time.LocalDate
 import kotlin.random.Random
 
 
@@ -24,7 +29,7 @@ import kotlin.random.Random
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
-    @LocalServerPort val port: Int, @Autowired val objectMapper: ObjectMapper,
+                                    @LocalServerPort val port: Int, @Autowired val objectMapper: ObjectMapper,
                                     @Autowired val service: TaskService) {
     val endpoint = "/api/tasks"
 
@@ -75,10 +80,10 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
-        val json = """{"text": "New Task", "day": "2022-03-01 12:45:00.000.00.0", "reminder": true}"""
-        val request = HttpEntity<String>(json, headers)
+        val params = "?text=New Task&day=2022-03-01&reminder=true&reportedByEmail=${DataConfiguration().johnDoe.email}&projectName=${DataConfiguration().project.name}"
+        val request = HttpEntity<String>(headers)
 
-        val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
+        val response: ResponseEntity<String> = client.postForEntity(url + params, request, String::class.java)
         val result: Task = objectMapper.readValue(response.body.toStr())
         val updatedTasks: List<Task> = service.getTasks()
 
@@ -112,10 +117,9 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
-        val requestBody = """{"text": "Updated Task", "day": "2022-03-01 12:45:00.000.00.0", "reminder": false}"""
-
-        val request = HttpEntity<String>(requestBody, headers)
-        val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
+        val params = "?text=Updated Task&day=2022-03-01&reminder=false"
+        val request = HttpEntity<String>(headers)
+        val response: ResponseEntity<String> = client.exchange(url + params, HttpMethod.PUT, request, String::class.java)
 
         Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         val result: Task = objectMapper.readValue(response.body.toStr())

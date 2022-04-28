@@ -2,10 +2,15 @@ package de.tom.demo.taskapp.entities.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.config.DataConfiguration
+import de.tom.demo.taskapp.entities.Project
 import org.junit.jupiter.api.Test
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.User
+import de.tom.demo.taskapp.entities.projects.ProjectService
+import de.tom.demo.taskapp.entities.users.UserService
 import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.every
 import io.mockk.junit5.MockKExtension
@@ -25,8 +30,8 @@ import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import java.time.LocalDate
 
-import java.time.LocalDateTime
 import java.util.*
 
 @SpringBootTest
@@ -36,8 +41,9 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     val endpoint = "/api/tasks"
     val idNotExist = "5678"
     var testData= listOf<Task>()
-    val testTask = Task(null, "New Task",
-        LocalDateTime.of(2022, 2, 24, 18, 0), true)
+    var testTask = Task(null, "New Task", null,
+        LocalDate.now(), true, Constants.TASK_CREATED, null, listOf(),
+        DataConfiguration().johnDoe, DataConfiguration().project)
 
     // Mocking the TaskService
     @TestConfiguration
@@ -47,6 +53,8 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     }
     @Autowired
     lateinit var service: TaskService
+    private val userService = mockk<UserService>()
+    private val projectService = mockk<ProjectService>()
 
     @BeforeAll
     fun setUp() {
@@ -59,16 +67,19 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
         testData.map {
             val id = it.id ?: ""
             every { service.getTask(id) } returns it
-            every { service.updateTask(id, testTask) } returns
+            every { service.updateTask(id, testTask.text, testTask.day, testTask.reminder) } returns
                     it.copy(text = testTask.text, day = testTask.day, reminder = testTask.reminder)
         }
         val idExist = testData[0].id ?: ""
         every { service.getTasks() } returns testData
         every { service.getTask(idNotExist) } throws TaskNotFoundException(idNotExist)
-        every { service.addTask(testTask) } returns testTask.copy(id = UUID.randomUUID().toStr())
+        every { service.addTask(any()) } returns testTask.copy(id = UUID.randomUUID().toStr())
         every { service.deleteTask(idExist)} returns Unit
         every { service.deleteTask(idNotExist)} throws TaskNotFoundException(idNotExist)
-        every { service.updateTask(idNotExist, any()) } throws TaskNotFoundException(idNotExist)
+        every { service.updateTask(idNotExist, any(), any(), any()) } throws TaskNotFoundException(idNotExist)
+
+        every { userService.getUserByEmail(DataConfiguration().johnDoe.email) } returns DataConfiguration().johnDoe
+        every { projectService.getProject(DataConfiguration().project.name) } returns DataConfiguration().project
     }
 
     @Test
@@ -114,9 +125,9 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     @Test
     @DisplayName("Unit test for POST /api/tasks/")
     fun post() {
-        val json = mockMvc.perform(post("$endpoint/")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(testTask)))
+        val params = "?text=${testTask.text}&day=${testTask.day}&reminder=${testTask.reminder}&reportedByEmail=${DataConfiguration().johnDoe.email}&projectName=${DataConfiguration().project.name}"
+        val json = mockMvc.perform(post("$endpoint/" + params)
+            .contentType(MediaType.APPLICATION_JSON))
             //.andDo(MockMvcResultHandlers.print())
             .andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -153,10 +164,11 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     @DisplayName("Unit test for PUT /api/tasks/{id}")
     fun put() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
+        val params = "?text=${testTask.text}&day=${testTask.day}&reminder=${testTask.reminder}"
 
         val idExist = testData[0].id
         val json = mockMvc.perform(
-            put("$endpoint/${idExist}")
+            put("$endpoint/${idExist}" + params)
             .contentType(MediaType.APPLICATION_JSON)
             .content(objectMapper.writeValueAsString(testTask)))
             //.andDo(MockMvcResultHandlers.print())
@@ -174,9 +186,9 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     @DisplayName("Unit test for PUT /api/tasks/{id} with id that not exists")
     fun failedPut() {
         Assertions.assertThat(testData[0].text).isNotEqualTo(testTask.text)
-
+        val params = "?text=${testTask.text}&day=${testTask.day}&reminder=${testTask.reminder}"
         mockMvc.perform(
-            put("$endpoint/${idNotExist}")
+            put("$endpoint/${idNotExist}" + params)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(testTask)))
             //.andDo(MockMvcResultHandlers.print())
