@@ -6,7 +6,7 @@ import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDateTime
 
-@Document("tasks")
+@Document(collection = "tasks")
 data class Task(
     @Id val id: String?,
     val text: String,
@@ -15,7 +15,7 @@ data class Task(
     val reminder: Boolean
 )
 
-@Document("users")
+@Document(collection = "users")
 data class User(
     @Id val id: String?,
     val name: String,
