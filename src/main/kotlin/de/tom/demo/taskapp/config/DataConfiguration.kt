@@ -12,7 +12,6 @@ import org.springframework.boot.ApplicationRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 @Configuration
 class DataConfiguration {
@@ -23,16 +22,16 @@ class DataConfiguration {
 
     final val task1 = Task(null, "Food shopping", "",
             LocalDate.now().plusDays(10), true,
-            Constants.TASK_OPEN, null, listOf<User>(johnDoe), johnDoe, project)
+            Constants.TASK_OPEN, null, listOf(johnDoe), johnDoe, project)
     final val task2 = Task(null, "Doctor appointment", "",
             LocalDate.now().plusDays(5), true,
-        Constants.TASK_OPEN, null, listOf<User>(johnDoe, janeDoe), johnDoe, project)
+        Constants.TASK_OPEN, null, listOf(johnDoe, janeDoe), johnDoe, project)
     final val task3 = Task(null, "School party preparation", "",
             LocalDate.now().minusDays(2), true,
-        Constants.TASK_CLOSED, null, listOf<User>(janeDoe), johnDoe, project)
+        Constants.TASK_CLOSED, null, listOf(janeDoe), johnDoe, project)
     final val task4 = Task(null, "Backup databases", "",
             LocalDate.now(), false,
-        Constants.TASK_OPEN, null, listOf<User>(admin), admin, project);
+        Constants.TASK_OPEN, null, listOf(admin), admin, project)
     val testTasks = listOf(task1, task2, task3, task4)
 
     @Bean
@@ -57,7 +56,7 @@ class DataConfiguration {
         val dbTask3 = task3.copy(assignees = listOf(dbJaneDoe), reportedBy = dbJohnDoe, consistOf = dbProject)
         val dbTask4 = task4.copy(assignees = listOf(dbAdmin), reportedBy = dbAdmin, consistOf = dbProject)
 
-        listOf<Task>(dbTask1, dbTask2, dbTask3, dbTask4).map {
+        listOf(dbTask1, dbTask2, dbTask3, dbTask4).map {
             taskRepository.save(it)
         }
     }

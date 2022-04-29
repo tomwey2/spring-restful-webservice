@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
 
 @Service
-class UserService(val db: UserRepository, val passwordEncoder: PasswordEncoder): UserDetailsService {
+class UserService(private val db: UserRepository, private val passwordEncoder: PasswordEncoder): UserDetailsService {
     private val encoder = passwordEncoder.bCryptPasswordEncoder()
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -54,7 +54,7 @@ class UserService(val db: UserRepository, val passwordEncoder: PasswordEncoder):
             true,
             true,
             listOf(SimpleGrantedAuthority(user.role))
-        );
+        )
     }
 
 }

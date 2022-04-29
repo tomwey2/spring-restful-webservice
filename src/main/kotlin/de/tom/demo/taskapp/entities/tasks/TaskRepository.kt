@@ -8,5 +8,4 @@ import org.springframework.stereotype.Repository
  *  JPA Repository: to interact with H2 database
  */
 @Repository
-interface TaskRepository : MongoRepository<Task, String> {
-}
+interface TaskRepository : MongoRepository<Task, String>

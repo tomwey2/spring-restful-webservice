@@ -35,18 +35,18 @@ class UserAuthorizationJwtFilter : OncePerRequestFilter() {
         – set the current UserDetails in SecurityContext using setAuthentication(authentication) method.
         */
         if (request.servletPath == "/login") {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response)
             return
         }
 
         val jwt: String? = parseJwt(request)
         if (jwt == null) {
-            filterChain.doFilter(request, response);
+            filterChain.doFilter(request, response)
             return
         }
 
         try {
-            log.info("Authorize request with JWT: ${jwt}")
+            log.info("Authorize request with JWT: $jwt")
 
             validateJwtToken(jwt)
             val authentication: UsernamePasswordAuthenticationToken = verifyToken(jwt)
@@ -65,12 +65,12 @@ class UserAuthorizationJwtFilter : OncePerRequestFilter() {
         }
     }
 
-    fun parseJwt(request: HttpServletRequest): String? {
+    private fun parseJwt(request: HttpServletRequest): String? {
         val authorizationHeader = request.getHeader(AUTHORIZATION)
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             val token = authorizationHeader.substring("Bearer ".length)
-            return token;
+            return token
         }
-        return null;
+        return null
     }
 }

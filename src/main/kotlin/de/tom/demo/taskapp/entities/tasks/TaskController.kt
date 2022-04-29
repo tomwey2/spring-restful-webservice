@@ -1,14 +1,15 @@
 package de.tom.demo.taskapp.entities.tasks
 
 import de.tom.demo.taskapp.Constants
+import de.tom.demo.taskapp.TaskNotValidException
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.projects.ProjectService
+import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
-import de.tom.demo.taskapp.TaskNotValidException
-import de.tom.demo.taskapp.entities.projects.ProjectService
-import de.tom.demo.taskapp.entities.users.UserService
 import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 /**
  * REST Controller with GET, POST, PUT and DELETE methods.
@@ -41,11 +42,10 @@ class TaskController(val service: TaskService, val userService: UserService, val
         if (text.isEmpty())
             throw TaskNotValidException("add task fields: text, day, reminder")
         else {
-            log.info("post: $text, $description, $day, $reminder, $reportedByEmail, $projectName")
-            val dayDate = LocalDate.parse(day) // TODO: check day
             val reportedBy = userService.getUserByEmail(reportedByEmail)
             val project = projectService.getProjectByName(projectName)
-            val task = Task(null, text, description, dayDate, reminder, Constants.TASK_CREATED, null, listOf(), reportedBy, project)
+            val task = Task(null, text, description, convertStringToLocalDate(day), reminder,
+                Constants.TASK_CREATED, null, listOf(), reportedBy, project)
             service.addTask(task)
         }
 
@@ -55,13 +55,19 @@ class TaskController(val service: TaskService, val userService: UserService, val
     @ResponseStatus(HttpStatus.OK)
     fun delete(@PathVariable id: String): Unit = service.deleteTask(id)
 
-    // PUT — Update task details by id
-    // http://localhost:88080/api/tasks/{id}
+    // PUT — Update data of task with id
+    // http://localhost:88080/api/tasks/{id}?text={text}&day={day}&reminder={reminder}
     @PutMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun put(@PathVariable id: String,
-            @RequestParam text: String, @RequestParam day: String, @RequestParam reminder: Boolean): Task {
-        val dayDate = LocalDate.parse(day) // TODO: check day
-        return service.updateTask(id, text, dayDate, reminder)
+            @RequestParam text: String, @RequestParam day: String, @RequestParam reminder: Boolean): Task =
+        service.updateTask(id, text, convertStringToLocalDate(day), reminder)
+
+    private fun convertStringToLocalDate(value: String): LocalDate {
+        try {
+            return LocalDate.parse(value)
+        } catch (e: DateTimeParseException) {
+            throw TaskNotValidException("Parameter day has wrong format")
+        }
     }
 }

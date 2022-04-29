@@ -1,10 +1,7 @@
 package de.tom.demo.taskapp.entities
 
-import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonIgnore
 import org.springframework.data.annotation.Id
 import org.springframework.data.mongodb.core.mapping.Document
-import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
 

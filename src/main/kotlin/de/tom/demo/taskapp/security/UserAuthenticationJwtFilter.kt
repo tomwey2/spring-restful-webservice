@@ -56,7 +56,7 @@ class UserAuthenticationJwtFilter(authenticationManager: AuthenticationManager) 
         response: HttpServletResponse?,
         failed: AuthenticationException?
     ) {
-        log.error("Authentication was unsuccessful. Message: {}", failed?.message);
+        log.error("Authentication was unsuccessful. Message: {}", failed?.message)
         response?.status ?: HttpServletResponse.SC_UNAUTHORIZED
         response?.contentType ?: MediaType.APPLICATION_JSON_VALUE
         objectMapper.writeValue(response?.outputStream,

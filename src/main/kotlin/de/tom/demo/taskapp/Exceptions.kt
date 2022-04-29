@@ -16,7 +16,7 @@ class TaskNotFoundException(id : String) : RuntimeException("Task not found: $id
  * 400 BAD REQUEST status with a message.
  */
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-class TaskNotValidException(error : String) : RuntimeException(error)
+class TaskNotValidException(error: String) : RuntimeException(error)
 
 
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
@@ -26,15 +26,15 @@ class UserNotFoundException(username: String) : RuntimeException("User $username
 class UserAlreadyExistException(username: String) : RuntimeException("User $username already exist.")
 
 @ResponseStatus(value = HttpStatus.BAD_REQUEST)
-class CredentialsNotValidException(error : String) : RuntimeException(error)
+class CredentialsNotValidException(error: String) : RuntimeException(error)
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-class UserAuthenticationFailedException() : RuntimeException("Cannot authentication user")
+class UserAuthenticationFailedException : RuntimeException("Cannot authentication user")
 
 /**
  * Exception handler for project not found. It responds the 404 NOT FOUND status with
  * the message, which project (id) was not found.
  */
 @ResponseStatus(value = HttpStatus.NOT_FOUND)
-class ProjectNotFoundException(id : String) : RuntimeException("Project not found: $id")
+class ProjectNotFoundException(id: String) : RuntimeException("Project not found: $id")
 

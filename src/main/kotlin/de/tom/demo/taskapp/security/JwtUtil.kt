@@ -32,8 +32,8 @@ fun verifyToken(token: String): UsernamePasswordAuthenticationToken {
     val decodedJwt: DecodedJWT = verifier.verify(token)
     val username = decodedJwt.subject
     val roles: Array<String> = decodedJwt.getClaim("roles").asArray(String::class.java)
-    val authorities: kotlin.collections.Collection<SimpleGrantedAuthority> =
-        Array(roles.size) { i -> SimpleGrantedAuthority(roles[i].toString()) }.toList()
+    val authorities: Collection<SimpleGrantedAuthority> =
+        Array(roles.size) { i -> SimpleGrantedAuthority(roles[i]) }.toList()
     return UsernamePasswordAuthenticationToken(username, null, authorities)
 }
 

@@ -28,7 +28,7 @@ class WebSecurityConfig(private val userService: UserService,
 
 
     /**
-     * The configure(HttpSecurity) method defines which URL paths should be secured and which should not.
+     * configure(HttpSecurity) method defines which URL paths should be secured and which should not.
      * Specifically, the / and /hello paths are configured to not require any authentication.
      * All other paths must be authenticated.
      */
@@ -52,7 +52,7 @@ class WebSecurityConfig(private val userService: UserService,
 
             http.addFilterBefore(authenticationJwtFilter, UserAuthenticationJwtFilter::class.java)
             http.addFilterBefore(authorizationJwtFilter, UsernamePasswordAuthenticationFilter::class.java)
-        };
+        }
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
