@@ -27,7 +27,7 @@ data class User(
     val name: String,
     val password: String,
     val email: String,
-    val role: String,
+    val roles: List<String>,
     val createdAt: LocalDateTime = LocalDateTime.now(),
     val updatedAt: LocalDateTime? = null
 )

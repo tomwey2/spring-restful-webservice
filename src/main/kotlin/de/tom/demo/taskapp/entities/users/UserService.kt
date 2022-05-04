@@ -25,14 +25,14 @@ class UserService(private val db: UserRepository, private val passwordEncoder: P
     fun getUser(id: String): User = db.findByIdOrNull(id) ?: throw UserNotFoundException(id)
 
     fun getUserByEmail(email: String): User = db.findUserByEmail(email) ?: throw UserNotFoundException(email)
-    fun registerUser(name: String, email: String, password: String, role: String = "ROLE_USER"): User {
-        log.info("Register user $name with role $role")
+    fun registerUser(name: String, email: String, password: String, roles: List<String> = listOf("ROLE_USER")): User {
+        log.info("Register user $name with roles $roles")
         // check if user exists
         if (db.findUserByEmail(email) == null) {
             // hash the password, because here is it open
             val hashedPassword = encoder.encode(password)
             // create the user and save it in the database
-            return db.save(User(null, name, hashedPassword, email, role))
+            return db.save(User(null, name, hashedPassword, email, roles))
         } else
             throw UserAlreadyExistException(email)
     }
@@ -56,7 +56,7 @@ class UserService(private val db: UserRepository, private val passwordEncoder: P
             true,
             true,
             true,
-            listOf(SimpleGrantedAuthority(user.role))
+            user.roles.map{SimpleGrantedAuthority(it) }
         )
     }
 

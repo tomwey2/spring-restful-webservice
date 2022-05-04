@@ -20,7 +20,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      */
     fun getTasks(user: User): List<Task> {
         //val user = userService.getLoggedInUser()
-        return if (user.role == Constants.ROLE_ADMIN) db.findAll() else db.findAllUserTasks(user.email)
+        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.email)
     }
 
     /**
@@ -29,7 +29,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      */
     fun getAllTasksReportedByUser(user: User): List<Task> {
         //val user = userService.getLoggedInUser()
-        return if (user.role == Constants.ROLE_ADMIN) db.findAll() else db.findAllTasksReportedByUser(user.email)
+        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllTasksReportedByUser(user.email)
     }
 
     /**
@@ -38,7 +38,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      */
     fun getAllTasksAssignedToUser(user: User): List<Task> {
         //val user = userService.getLoggedInUser()
-        return if (user.role == Constants.ROLE_ADMIN) db.findAll() else db.findAllTasksAssignedToUser(user.email)
+        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllTasksAssignedToUser(user.email)
     }
 
     fun getTaskOfUser(id: String, user: User): Task {

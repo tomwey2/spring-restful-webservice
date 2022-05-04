@@ -16,9 +16,9 @@ import java.time.LocalDate
 @Configuration
 class DataConfiguration {
     final val project = Project("p1", "p1")
-    final val johnDoe = User("john", "John Doe", "1234", "john.doe@test.com", Constants.ROLE_USER)
-    final val janeDoe = User("jane", "Jane Doe", "1234", "jane.doe@test.com", Constants.ROLE_USER)
-    final val admin = User("admin", "Admin", "1234", "admin@test.com", Constants.ROLE_ADMIN)
+    final val johnDoe = User("john", "John Doe", "1234", "john.doe@test.com", listOf(Constants.ROLE_USER))
+    final val janeDoe = User("jane", "Jane Doe", "1234", "jane.doe@test.com", listOf(Constants.ROLE_USER))
+    final val admin = User("admin", "Admin", "1234", "admin@test.com", listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
 
     final val task1 = Task(
         "t1", "Food shopping", "",
@@ -43,21 +43,21 @@ class DataConfiguration {
     val testAllTasks = listOf(task1, task2, task3, task4)
 
     fun getAllTasksOfUser(user: User): List<Task> =
-        if (user.role == Constants.ROLE_ADMIN) {
+        if (user.roles.contains(Constants.ROLE_ADMIN)) {
             testAllTasks
         } else {
             testAllTasks.filter { it.reportedBy.email == user.email || it.assignees.contains(user)}
         }
 
     fun getAllTestTasksReportedByUser(user: User): List<Task> =
-        if (user.role == Constants.ROLE_ADMIN) {
+        if (user.roles.contains(Constants.ROLE_ADMIN)) {
             testAllTasks
         } else {
             testAllTasks.filter { it.reportedBy.email == user.email }
         }
 
     fun getAllTestTasksAssignedToUser(user: User): List<Task> =
-        if (user.role == Constants.ROLE_ADMIN) {
+        if (user.roles.contains(Constants.ROLE_ADMIN)) {
             testAllTasks
         } else {
             testAllTasks.filter { it.assignees.contains(user) }
@@ -82,7 +82,7 @@ class DataConfiguration {
 
         val dbJohnDoe = userService.registerUser(johnDoe.name, johnDoe.email, johnDoe.password)
         val dbJaneDoe = userService.registerUser(janeDoe.name, janeDoe.email, janeDoe.password)
-        val dbAdmin = userService.registerUser(admin.name, admin.email, admin.password, Constants.ROLE_ADMIN)
+        val dbAdmin = userService.registerUser(admin.name, admin.email, admin.password, listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
 
         val dbTask1 = task1.copy(id = null, assignees = listOf(dbJohnDoe), reportedBy = dbJohnDoe, consistOf = dbProject)
         val dbTask2 =
