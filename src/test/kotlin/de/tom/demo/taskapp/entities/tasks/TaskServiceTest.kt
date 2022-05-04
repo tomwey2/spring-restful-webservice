@@ -2,20 +2,20 @@ package de.tom.demo.taskapp.entities.tasks
 
 import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotFoundException
-import de.tom.demo.taskapp.entities.Project
+import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.Task
-import de.tom.demo.taskapp.entities.User
-import io.mockk.*
+import de.tom.demo.taskapp.entities.users.UserService
+import io.mockk.every
 import io.mockk.junit5.MockKExtension
+import io.mockk.mockk
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
-import org.springframework.data.repository.findByIdOrNull
+import org.springframework.test.context.ContextConfiguration
 import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * Testing the TaskService with JUnit5 and MockK.
@@ -26,80 +26,102 @@ import java.time.LocalDateTime
 // no SpringBootTest annotations in order to execute the test functions fast and without the framework
 // @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ExtendWith(MockKExtension::class)
+@ContextConfiguration
 class TaskServiceTest {
-    val testUser = User("u1", "test", "1234", "test@test.com", Constants.ROLE_USER)
-    val testProject = Project("p1", "test")
-    val testTask = Task("4711", "New Task", "",
-        LocalDate.now(), true, Constants.TASK_CLOSED, null, listOf<User>(testUser), testUser, testProject)
-
-    private val idExist = testTask.id ?: ""
-    private val idNotExist = "5678"
-
     private val repository = mockk<TaskRepository>()
-    private val underTest = TaskService(repository)
+    private val userService = mockk<UserService>()
+    private val underTest = TaskService(repository, userService)
 
-    @BeforeAll
+    private val johnDoe = DataConfiguration().johnDoe
+    private val janeDoe = DataConfiguration().janeDoe
+    private val admin = DataConfiguration().admin
+
+    private val idNotExist = "5678"
+    private val testTask = Task("4711", "New Task", "",
+        LocalDate.now(), true, Constants.TASK_CLOSED, null,
+        listOf(johnDoe), johnDoe, DataConfiguration().project)
+
+    @BeforeEach
     fun setup() {
         println(">> Mocking the repository calls with test data")
-        every { repository.findAll() } returns listOf()
-        every { repository.findByIdOrNull("") } returns null
-        every { repository.findByIdOrNull(idNotExist) } returns null
-        every { repository.findByIdOrNull(idExist) } returns testTask
 
-        every { repository.save(testTask) } returns testTask
+        every { repository.findAllUserTasks(johnDoe.email) } returns DataConfiguration().getAllTasksOfUser(johnDoe)
+        every { repository.findAllUserTasks(janeDoe.email) } returns DataConfiguration().getAllTasksOfUser(janeDoe)
+        every { repository.findAllUserTasks(admin.email) } returns DataConfiguration().getAllTasksOfUser(admin)
+        every { repository.findAll() } returns DataConfiguration().getAllTasksOfUser(admin)
+
+        every { repository.findAllTasksReportedByUser(johnDoe.email) } returns DataConfiguration().getAllTestTasksReportedByUser(johnDoe)
+        every { repository.findAllTasksReportedByUser(janeDoe.email) } returns DataConfiguration().getAllTestTasksReportedByUser(janeDoe)
+        every { repository.findAllTasksReportedByUser(admin.email) } returns DataConfiguration().getAllTestTasksReportedByUser(admin)
+
+        every { repository.findAllTasksAssignedToUser(johnDoe.email) } returns DataConfiguration().getAllTestTasksAssignedToUser(johnDoe)
+        every { repository.findAllTasksAssignedToUser(janeDoe.email) } returns DataConfiguration().getAllTestTasksAssignedToUser(janeDoe)
+        every { repository.findAllTasksAssignedToUser(admin.email) } returns DataConfiguration().getAllTestTasksAssignedToUser(admin)
+
         every { repository.delete(any()) } returns Unit
+        every { repository.save(testTask) } returns testTask
+
     }
 
     @Test
-    @DisplayName("Test the getTasks() function")
-    fun getTasks() {
-        underTest.getTasks()
-        verify { underTest.getTasks() }
+    fun `Get all Tasks of user with role ROLE_USER`() {
+        val tasks = underTest.getTasks(johnDoe)
+        assertThat(tasks).hasSameSizeAs(DataConfiguration().getAllTasksOfUser(johnDoe))
     }
 
     @Test
-    @DisplayName("Test the getTask(id) with existing id")
-    fun getTask() {
-        assertEquals(testTask, underTest.getTask(idExist))
+    fun `Get all Tasks of user with role ROLE_ADMIN`() {
+        val result = underTest.getTasks(admin)
+        assertThat(result).hasSameSizeAs(DataConfiguration().getAllTasksOfUser(admin))
     }
 
     @Test
-    @DisplayName("Test the getTask(id) with not existing id")
-    fun failedGetTask() {
-        assertThrows( TaskNotFoundException::class.java) { underTest.getTask("") }
-        assertThrows( TaskNotFoundException::class.java) { underTest.getTask(idNotExist) }
+    fun `Get one Tasks by id of user with role ROLE_USER`() {
+        val testTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
+        val result = underTest.getTaskOfUser(testTask.id!!, johnDoe)
+        assertThat(result).usingComparator(TaskTestUtils.taskComparator).isEqualTo(testTask)
     }
 
     @Test
-    @DisplayName("Test the addTask(task)")
-    fun addTask() {
+    fun `Failed to get one Tasks by id of user with role ROLE_ADMIN`() {
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskOfUser("", admin) }
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskOfUser(idNotExist, admin) }
+    }
+
+    @Test
+    fun `Add a task of user with role ROLE_USER`() {
         assertEquals(testTask, underTest.addTask(testTask))
     }
 
     @Test
-    @DisplayName("Test the deleteTask(id) with existing id")
-    fun deleteTask() {
-        justRun { underTest.deleteTask(idExist) }
+    fun `Delete a task with existing id of user with role ROLE_USER`() {
+        val testTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
+        val johnsTasks = DataConfiguration().getAllTestTasksReportedByUser(johnDoe)
+        every { repository.findAllTasksReportedByUser(johnDoe.email) } returns johnsTasks
+//        justRun { underTest.deleteTaskOfUser(testTask.id!!, johnDoe) }
+        underTest.deleteTaskOfUser(testTask.id!!, johnDoe)
     }
 
     @Test
-    @DisplayName("Test the deleteTask(id) with not existing id")
-    fun failedDeleteTask() {
-        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTask("") }
-        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTask(idNotExist) }
+    fun `Failed to delete a task with not existing id of user with role ROLE_USER`() {
+        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTaskOfUser("", johnDoe) }
+        assertThrows( TaskNotFoundException::class.java) { underTest.deleteTaskOfUser(idNotExist, johnDoe) }
     }
 
     @Test
-    @DisplayName("Test the updateTask(id) with existing id")
-    fun updateTask() {
-        assertEquals(testTask, underTest.updateTask(idExist, testTask.text, testTask.day, testTask.reminder))
+    fun `Update a task that exist`() {
+        val testTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
+        val savedTask = testTask.copy(text = "updated", day = testTask.day, reminder = testTask.reminder)
+        every { repository.save(any()) } returns savedTask
+
+        val result = underTest.updateTask(testTask.id!!, "updated", testTask.day, testTask.reminder, johnDoe)
+        assertThat(result.text).isEqualTo(savedTask.text)
     }
 
     @Test
-    @DisplayName("Test the updateTask(id) with not existing id")
-    fun failedUpdateTask() {
+    fun `Failed tp update a task which does not exist`() {
         assertThrows( TaskNotFoundException::class.java) {
-            underTest.updateTask(idNotExist, testTask.text, testTask.day, testTask.reminder) }
+            underTest.updateTask(idNotExist, testTask.text, testTask.day, testTask.reminder, johnDoe) }
     }
 
 }

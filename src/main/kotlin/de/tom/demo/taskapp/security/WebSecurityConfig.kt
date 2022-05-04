@@ -45,8 +45,8 @@ class WebSecurityConfig(private val userService: UserService,
 
             http.authorizeRequests()
                 .antMatchers("/register", "/login").permitAll()
-                .antMatchers("/hello", "/api/tasks/**").permitAll()
-                .antMatchers("/api/users/me").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .antMatchers("/hello").permitAll()
+                .antMatchers("/api/users/me", "/api/tasks/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
                 .antMatchers("/api/users/").hasAnyAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
 

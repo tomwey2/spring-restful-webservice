@@ -1,5 +1,6 @@
 package de.tom.demo.taskapp.entities.users
 
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.entities.User
 import org.springframework.http.HttpStatus
 import org.springframework.security.core.context.SecurityContextHolder
@@ -10,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping(Constants.PATH_USERS)
 class UserController(val service: UserService) {
 
     // GET method to get all users from database

@@ -1,5 +1,6 @@
 package de.tom.demo.taskapp.entities.users
 
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.CredentialsNotValidException
 import de.tom.demo.taskapp.UserAlreadyExistException
 import de.tom.demo.taskapp.UserNotFoundException
@@ -8,9 +9,11 @@ import de.tom.demo.taskapp.entities.User
 import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 @Service
 class UserService(private val db: UserRepository, private val passwordEncoder: PasswordEncoder): UserDetailsService {
@@ -19,9 +22,9 @@ class UserService(private val db: UserRepository, private val passwordEncoder: P
 
     fun getUsers(): List<User> = db.findAll()
 
-    fun getUser(id: String): User = db.findByIdOrNull(id) ?: throw  UserNotFoundException(id)
+    fun getUser(id: String): User = db.findByIdOrNull(id) ?: throw UserNotFoundException(id)
 
-    fun getUserByEmail(email: String): User = db.findUserByEmail(email) ?: throw  UserNotFoundException(email)
+    fun getUserByEmail(email: String): User = db.findUserByEmail(email) ?: throw UserNotFoundException(email)
     fun registerUser(name: String, email: String, password: String, role: String = "ROLE_USER"): User {
         log.info("Register user $name with role $role")
         // check if user exists
@@ -55,6 +58,11 @@ class UserService(private val db: UserRepository, private val passwordEncoder: P
             true,
             listOf(SimpleGrantedAuthority(user.role))
         )
+    }
+
+    fun getLoggedInUser(): User {
+        val principal = SecurityContextHolder.getContext().authentication.principal.toString()
+        return getUserByEmail(principal)
     }
 
 }
