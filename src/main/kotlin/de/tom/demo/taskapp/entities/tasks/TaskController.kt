@@ -16,7 +16,7 @@ import java.time.format.DateTimeParseException
  */
 //  @CrossOrigin(origins = ["http://localhost:3000"])
 @RestController
-@RequestMapping("/api/tasks")
+@RequestMapping(Constants.PATH_TASKS)
 class TaskController(val service: TaskService, val userService: UserService, val projectService: ProjectService) {
     private val log = LoggerFactory.getLogger(this.javaClass)
 
@@ -24,13 +24,13 @@ class TaskController(val service: TaskService, val userService: UserService, val
     // http://localhost:8080/api/tasks/
     @GetMapping(path = ["/"])
     @ResponseStatus(HttpStatus.OK)
-    fun getAll(): List<Task> = service.getTasks()
+    fun getAll(): List<Task> = service.getTasks(userService.getLoggedInUser())
 
     // GET task details based on ‘Id’
     // http://localhost:8080/api/tasks/{id}
     @GetMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
-    fun getById(@PathVariable id: String): Task = service.getTask(id)
+    fun getById(@PathVariable id: String): Task = service.getTaskOfUser(id, userService.getLoggedInUser())
 
     // POST a new task
     // http://localhost:8080/api/tasks/
@@ -38,11 +38,11 @@ class TaskController(val service: TaskService, val userService: UserService, val
     @ResponseStatus(HttpStatus.CREATED)
     fun post(@RequestParam text: String, @RequestParam description: String?,
              @RequestParam day: String, @RequestParam reminder: Boolean,
-             @RequestParam reportedByEmail: String, @RequestParam projectName: String): Task =
+             @RequestParam projectName: String): Task =
         if (text.isEmpty())
             throw TaskNotValidException("add task fields: text, day, reminder")
         else {
-            val reportedBy = userService.getUserByEmail(reportedByEmail)
+            val reportedBy = userService.getLoggedInUser()
             val project = projectService.getProjectByName(projectName)
             val task = Task(null, text, description, convertStringToLocalDate(day), reminder,
                 Constants.TASK_CREATED, null, listOf(), reportedBy, project)
@@ -53,7 +53,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
     // http://localhost:8080/api/tasks/{id}
     @DeleteMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
-    fun delete(@PathVariable id: String): Unit = service.deleteTask(id)
+    fun delete(@PathVariable id: String): Unit = service.deleteTaskOfUser(id, userService.getLoggedInUser())
 
     // PUT — Update data of task with id
     // http://localhost:88080/api/tasks/{id}?text={text}&day={day}&reminder={reminder}
@@ -61,7 +61,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
     @ResponseStatus(HttpStatus.OK)
     fun put(@PathVariable id: String,
             @RequestParam text: String, @RequestParam day: String, @RequestParam reminder: Boolean): Task =
-        service.updateTask(id, text, convertStringToLocalDate(day), reminder)
+        service.updateTask(id, text, convertStringToLocalDate(day), reminder, userService.getLoggedInUser())
 
     private fun convertStringToLocalDate(value: String): LocalDate {
         try {

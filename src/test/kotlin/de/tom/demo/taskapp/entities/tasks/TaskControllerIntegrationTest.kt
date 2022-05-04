@@ -2,25 +2,22 @@ package de.tom.demo.taskapp.entities.tasks
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.config.DataConfiguration
+import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.Task
-import de.tom.demo.taskapp.entities.projects.ProjectService
-import de.tom.demo.taskapp.entities.users.UserService
+import de.tom.demo.taskapp.entities.User
 import io.mockk.InternalPlatformDsl.toStr
-import org.assertj.core.api.Assertions
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.DisplayName
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
-import org.springframework.boot.test.web.client.getForEntity
 import org.springframework.boot.web.server.LocalServerPort
 import org.springframework.http.*
-import org.springframework.web.bind.annotation.RequestParam
-import java.time.LocalDate
-import kotlin.random.Random
+import org.springframework.test.context.ContextConfiguration
+import org.springframework.util.LinkedMultiValueMap
+import org.springframework.util.MultiValueMap
 
 
 /**
@@ -28,103 +25,144 @@ import kotlin.random.Random
  * using the TestRestTemplate of the Spring Boot Test Framework
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ContextConfiguration
 class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
                                     @LocalServerPort val port: Int, @Autowired val objectMapper: ObjectMapper,
                                     @Autowired val service: TaskService) {
-    val endpoint = "/api/tasks"
+    private val johnDoe = DataConfiguration().johnDoe
+    private val janeDoe = DataConfiguration().janeDoe
+    private val admin = DataConfiguration().admin
 
-    @BeforeAll
-    fun setUp() {
-        val list: List<Task> = service.getTasks()
-        list.map { println(it) }
+
+    /**
+     * Login a test user to get the LoginResponseMessage. This JSON object contains the access token
+     * for authorization of the following requests.
+     */
+    private fun loginTestUser(user: User): LoginResponseMessage {
+        val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_LOGIN}"
+        val headers = HttpHeaders()
+        headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
+        val params: MultiValueMap<String, String> = LinkedMultiValueMap()
+        params.add("email", user.email)
+        params.add("password", user.password)
+
+        val request = HttpEntity<MultiValueMap<String, String>>(params, headers)
+        val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        val result: LoginResponseMessage = objectMapper.readValue(response.body.toStr())
+        return result
     }
 
-    @AfterAll
-    fun setDown() {
-        val list: List<Task> = service.getTasks()
-        list.map { println(it) }
+    private fun getAuthorizationHeader(accessToken: String): MultiValueMap<String, String> {
+        val headers: MultiValueMap<String, String> = LinkedMultiValueMap()
+        headers.add("Content-Type", "application/json")
+        headers.add("Authorization", "Bearer $accessToken")
+        return headers
     }
 
-    @Test
-    @DisplayName("integration test for GET /api/tasks")
-    fun getAll() {
-        val initialTasks: List<Task> = service.getTasks()
-        val url = "http://localhost:${port}$endpoint/"
+    private fun getAllTasksOfUser(loginResult: LoginResponseMessage): List<Task> {
+        val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
+        val headers = getAuthorizationHeader(loginResult.accessToken)
+        val response = client.exchange(url, HttpMethod.GET, HttpEntity<Any>(headers), String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 
-        val response = client.getForEntity<String>(url)
         val result: List<Task> = objectMapper.readValue(response.body.toStr())
-
-        Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        Assertions.assertThat(result).hasSize(initialTasks.size)
+        return result
     }
 
-    @Test
-    @DisplayName("integration test for GET /api/tasks/{id}")
-    fun getById() {
-        val initialTasks: List<Task> = service.getTasks()
-        val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}$endpoint/${testTask.id}/"
+    private fun getOneTaskOfUser(loginResult: LoginResponseMessage, id: String): Task {
+        val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/${id}/"
+        val headers = getAuthorizationHeader(loginResult.accessToken)
+        val response = client.exchange(url, HttpMethod.GET, HttpEntity<Any>(headers), String::class.java)
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 
-        val response = client.getForEntity<String>(url)
         val result: Task = objectMapper.readValue(response.body.toStr())
-
-        Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
-        Assertions.assertThat(result.text).isEqualTo(testTask.text)
+        return result
     }
 
     @Test
-    @DisplayName("integration test for POST /api/tasks/")
-    fun post() {
-        val initialTasks: List<Task> = service.getTasks()
-        val url = "http://localhost:${port}$endpoint/"
+    fun `Integration Test - Get all Tasks of user with role ROLE_USER`() {
+        val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
+        val result: List<Task> = getAllTasksOfUser(loginResult)
+        assertThat(result).isNotEmpty
+    }
 
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON
+    @Test
+    fun `Integration Test - Get all Tasks of user with role ROLE_ADMIN`() {
+        val loginResult: LoginResponseMessage = loginTestUser(admin)
+        val result: List<Task> = getAllTasksOfUser(loginResult)
+        assertThat(result).isNotEmpty
+    }
+
+    @Test
+    fun `Integration Test - Get one Tasks by id of user with role ROLE_USER`() {
+        val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
+        // request all tasks of user and select one randomly
+        val testTask: Task = getAllTasksOfUser(loginResult).random()
+        // request the task with the id of the selected task and check the result
+        val result: Task = getOneTaskOfUser(loginResult, testTask.id!!)
+        assertThat(result).isEqualTo(testTask)
+    }
+
+    @Test
+    fun `Integration Test - Add a task of user with role ROLE_USER`() {
+        val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
+        val initialTaskList: List<Task> = service.getTasks(johnDoe)
+
+        // prepare and send the request
+        val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
         val params = "?text=New Task&day=2022-03-01&reminder=true&reportedByEmail=${DataConfiguration().johnDoe.email}&projectName=${DataConfiguration().project.name}"
-        val request = HttpEntity<String>(headers)
-
+        val request = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.postForEntity(url + params, request, String::class.java)
+
+        // check the response
+        assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
         val result: Task = objectMapper.readValue(response.body.toStr())
-        val updatedTasks: List<Task> = service.getTasks()
-
-        Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.CREATED)
-        Assertions.assertThat(result.id).isNotEmpty()
-        Assertions.assertThat(result.text).isEqualTo("New Task")
-        Assertions.assertThat(updatedTasks.size).isEqualTo(initialTasks.size + 1)
+        assertThat(result.id).isNotEmpty
+        assertThat(result.text).isEqualTo("New Task")
+        val updatedTaskList: List<Task> = service.getTasks(johnDoe)
+        assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size + 1)
     }
 
     @Test
-    @DisplayName("integration test for DELETE /tasks/{id}")
-    fun delete() {
-        val initialTasks: List<Task> = service.getTasks()
-        val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}$endpoint/${testTask.id}"
+    fun `Integration Test - Delete a task with existing id of user with role ROLE_USER`() {
+        val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
+        // request all tasks of user and select one randomly
+        val testTask: Task = getAllTasksOfUser(loginResult).random()
+        val initialTaskList: List<Task> = service.getTasks(johnDoe)
 
-        client.delete(url)
-        val updatedTasks: List<Task> = service.getTasks()
+        // prepare and send the request
+        val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/${testTask.id}"
+        val deleteRequest = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
+        val deleteResponse: ResponseEntity<String> = client.exchange(url, HttpMethod.DELETE, deleteRequest, String::class.java)
 
-        Assertions.assertThat(updatedTasks.size).isEqualTo(initialTasks.size - 1)
-        val entity = client.getForEntity<String>(url)
-        Assertions.assertThat(entity.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
+        // check the response
+        assertThat(deleteResponse.statusCode).isEqualTo(HttpStatus.OK)
+        val updatedTaskList: List<Task> = service.getTasks(johnDoe)
+        assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size - 1)
+
+        val getRequest = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
+        val getResponse = client.exchange(url, HttpMethod.GET, getRequest, String::class.java)
+        assertThat(getResponse.statusCode).isEqualTo(HttpStatus.NOT_FOUND)
     }
 
     @Test
-    @DisplayName("integration test for PUT /api/tasks/")
-    fun put() {
-        val initialTasks: List<Task> = service.getTasks()
-        val testTask: Task = initialTasks[Random.nextInt(0, initialTasks.size)]
-        val url = "http://localhost:${port}$endpoint/${testTask.id}"
+    fun `Integration Test - Update a task that exist`() {
+        val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
+        // request all tasks of user and select one randomly
+        val testTask: Task = getAllTasksOfUser(loginResult).random()
 
-        val headers = HttpHeaders()
-        headers.contentType = MediaType.APPLICATION_JSON
+        // prepare and send the request
+        val url = "http://localhost:${port}${Constants.PATH_TASKS}/${testTask.id}"
         val params = "?text=Updated Task&day=2022-03-01&reminder=false"
-        val request = HttpEntity<String>(headers)
+        val request = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.exchange(url + params, HttpMethod.PUT, request, String::class.java)
 
-        Assertions.assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
+        // check the response
+        assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
         val result: Task = objectMapper.readValue(response.body.toStr())
-        Assertions.assertThat(result.id).isEqualTo(testTask.id)
-        Assertions.assertThat(result.text).isEqualTo("Updated Task")
+        assertThat(result.id).isEqualTo(testTask.id)
+        assertThat(result.text).isEqualTo("Updated Task")
 
     }
 }
