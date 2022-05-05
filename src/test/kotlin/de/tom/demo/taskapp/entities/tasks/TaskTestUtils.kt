@@ -15,15 +15,4 @@ object TaskTestUtils {
             0 else 1
     }
 
-    /**
-     * Create a TaskForm object
-     */
-    fun getTaskForm(text: String, day: String, reminder: Boolean) =
-        mapOf<String, Any>(
-            "text" to text,
-            "day" to day,
-            "reminder" to reminder,
-            "projectName" to DataConfiguration().project.name
-        )
-
 }

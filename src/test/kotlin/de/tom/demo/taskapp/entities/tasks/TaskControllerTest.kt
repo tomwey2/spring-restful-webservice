@@ -7,6 +7,7 @@ import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.TaskForm
 import de.tom.demo.taskapp.entities.User
 import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
@@ -152,7 +153,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
         every { userService.getLoggedInUser() } returns johnDoe
         every { service.addTask(any(), any(), any(), any(), any(), any(), any()) } returns newTask.copy(id = UUID.randomUUID().toStr())
 
-        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
         val response = mockMvc.perform(
             post("${Constants.PATH_TASKS}/")
                 .header("Authorization", "Bearer ${loginResponse.accessToken}")
@@ -211,7 +212,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
             every { service.updateTask(it.id!!, updatedText, any(), any(), any()) } returns it.copy(text = updatedText)
         }
 
-        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
         val response = mockMvc.perform(
             put("${Constants.PATH_TASKS}/${oldTask.id}")
                 .header("Authorization", "Bearer ${loginResponse.accessToken}")
@@ -238,7 +239,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
         every { userService.getLoggedInUser() } returns johnDoe
         every { service.updateTask(idNotExist, any(), any(), any(), any()) } throws TaskNotFoundException(idNotExist)
 
-        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
         mockMvc.perform(
             put("${Constants.PATH_TASKS}/${idNotExist}")
                 .header("Authorization", "Bearer ${loginResponse.accessToken}")

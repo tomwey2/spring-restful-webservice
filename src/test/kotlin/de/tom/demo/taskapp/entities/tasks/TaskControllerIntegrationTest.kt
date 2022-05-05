@@ -6,6 +6,7 @@ import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.TaskForm
 import de.tom.demo.taskapp.entities.User
 import io.mockk.InternalPlatformDsl.toStr
 import org.assertj.core.api.Assertions.assertThat
@@ -115,7 +116,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
-        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
 
@@ -162,7 +163,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // prepare and send the request
         val url = "http://localhost:${port}${Constants.PATH_TASKS}/${testTask.id}"
-        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
 
