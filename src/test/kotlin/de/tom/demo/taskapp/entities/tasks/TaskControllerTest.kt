@@ -148,17 +148,25 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
         every { userService.getLoggedInUser() } returns johnDoe
         every { service.addTask(any(), any(), any(), any(), any(), any(), any()) } returns newTask.copy(id = UUID.randomUUID().toStr())
 
-        val params = "text=${newTask.text}&day=${newTask.day}&reminder=${newTask.reminder}&reportedByEmail=${DataConfiguration().johnDoe.email}&projectName=${DataConfiguration().project.name}"
-        val json = mockMvc.perform(
-            post("${Constants.PATH_TASKS}/?$params")
+        // request body parameters
+        val body = ObjectMapper().writeValueAsString(mapOf<String, Any>(
+            "text" to "New Task",
+            "day" to "2022-03-01",
+            "reminder" to true,
+            "projectName" to DataConfiguration().project.name
+        ))
+
+        val response = mockMvc.perform(
+            post("${Constants.PATH_TASKS}/")
                 .contentType(MediaType.APPLICATION_JSON)
+                .content(body)
                 .header("Authorization", "Bearer ${loginResponse.accessToken}"))
             .andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
             .response.contentAsString
 
-        val result: Task = objectMapper.readValue(json)
+        val result: Task = objectMapper.readValue(response)
         assertThat(result.id).isNotEmpty
     }
 

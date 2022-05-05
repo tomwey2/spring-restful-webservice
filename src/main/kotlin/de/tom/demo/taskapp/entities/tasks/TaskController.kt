@@ -3,6 +3,7 @@ package de.tom.demo.taskapp.entities.tasks
 import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotValidException
 import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.TaskForm
 import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
@@ -43,15 +44,14 @@ class TaskController(val service: TaskService, val userService: UserService, val
      */
     @PostMapping(path = ["/"])
     @ResponseStatus(HttpStatus.CREATED)
-    fun post(@RequestParam text: String, @RequestParam description: String?,
-             @RequestParam day: String, @RequestParam reminder: Boolean,
-             @RequestParam projectName: String): Task =
-        if (text.isEmpty())
+    fun post(@RequestBody body: TaskForm): Task =
+        if (body.text.isEmpty())
             throw TaskNotValidException("add task fields: text, day, reminder")
         else {
             val reportedBy = userService.getLoggedInUser()
-            val project = projectService.getProjectByName(projectName)
-            service.addTask(text, description, convertStringToLocalDate(day), reminder, project, reportedBy, null)
+            val project = projectService.getProjectByName(body.projectName)
+            service.addTask(body.text, body.description, convertStringToLocalDate(body.day), body.reminder,
+                project, reportedBy, null)
         }
 
     /**
