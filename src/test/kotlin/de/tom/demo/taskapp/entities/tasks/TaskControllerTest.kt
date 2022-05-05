@@ -139,6 +139,10 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
 
     @Test
     fun `Add a task of user with role ROLE_USER`() {
+        val updatedText = "New Task"
+        val updatedDay = "2022-03-01"
+        val updatedReminder = true
+
         val loginResponse = loginTestUser(johnDoe)
         val newTask = Task("4711", "New Task", null,
             LocalDate.now(), true, Constants.TASK_CREATED, listOf(), listOf(),
@@ -148,19 +152,12 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
         every { userService.getLoggedInUser() } returns johnDoe
         every { service.addTask(any(), any(), any(), any(), any(), any(), any()) } returns newTask.copy(id = UUID.randomUUID().toStr())
 
-        // request body parameters
-        val body = ObjectMapper().writeValueAsString(mapOf<String, Any>(
-            "text" to "New Task",
-            "day" to "2022-03-01",
-            "reminder" to true,
-            "projectName" to DataConfiguration().project.name
-        ))
-
+        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
         val response = mockMvc.perform(
             post("${Constants.PATH_TASKS}/")
+                .header("Authorization", "Bearer ${loginResponse.accessToken}")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(body)
-                .header("Authorization", "Bearer ${loginResponse.accessToken}"))
+                .content(objectMapper.writeValueAsString(body)))
             .andExpect(status().isCreated)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
@@ -202,52 +199,51 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
 
     @Test
     fun `Update a task that exist`() {
+        val updatedText = "Updated Task"
+        val updatedDay = "2022-03-01"
+        val updatedReminder = false
         val loginResponse = loginTestUser(johnDoe)
         val oldTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
-        val newTask = oldTask.copy(id = null,  text = "updated")
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
         DataConfiguration().getAllTasksOfUser(johnDoe).map {
-            every { service.updateTask(it.id!!, "updated", any(), any(), any()) } returns it.copy(text = "updated")
+            every { service.updateTask(it.id!!, updatedText, any(), any(), any()) } returns it.copy(text = updatedText)
         }
 
-        assertThat(oldTask.text).isNotEqualTo(newTask.text)
-        val params = "text=${newTask.text}&day=${newTask.day}&reminder=${newTask.reminder}"
-
-        val jsonResponse = mockMvc.perform(
-            put("${Constants.PATH_TASKS}/${oldTask.id}?$params")
-                .contentType(MediaType.APPLICATION_JSON)
+        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val response = mockMvc.perform(
+            put("${Constants.PATH_TASKS}/${oldTask.id}")
                 .header("Authorization", "Bearer ${loginResponse.accessToken}")
-                .content(objectMapper.writeValueAsString(oldTask)))
-            //.andDo(MockMvcResultHandlers.print())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body)))
             .andExpect(status().is2xxSuccessful)
             .andExpect(content().contentType(MediaType.APPLICATION_JSON))
             .andReturn()
             .response.contentAsString
 
-        val result: Task = objectMapper.readValue(jsonResponse)
+        val result: Task = objectMapper.readValue(response)
         assertThat(result.id).isEqualTo(oldTask.id)
-        assertThat(result.text).isEqualTo(newTask.text)
+        assertThat(result.text).isEqualTo(updatedText)
     }
 
     @Test
     fun `Failed to update a task that not exist`() {
+        val updatedText = "Updated Task"
+        val updatedDay = "2022-03-01"
+        val updatedReminder = false
         val loginResponse = loginTestUser(johnDoe)
-        val oldTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
-        val newTask = oldTask.copy(id = null,  text = "updated")
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
         every { service.updateTask(idNotExist, any(), any(), any(), any()) } throws TaskNotFoundException(idNotExist)
 
-        assertThat(oldTask.text).isNotEqualTo(newTask.text)
-        val params = "text=${newTask.text}&day=${newTask.day}&reminder=${newTask.reminder}"
+        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
         mockMvc.perform(
-            put("${Constants.PATH_TASKS}/${idNotExist}?$params")
-                .contentType(MediaType.APPLICATION_JSON)
+            put("${Constants.PATH_TASKS}/${idNotExist}")
                 .header("Authorization", "Bearer ${loginResponse.accessToken}")
-                .content(objectMapper.writeValueAsString(newTask)))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(body)))
             .andExpect(status().isNotFound)
 
     }

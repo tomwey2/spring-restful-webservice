@@ -68,9 +68,8 @@ class TaskController(val service: TaskService, val userService: UserService, val
      */
     @PutMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
-    fun put(@PathVariable id: String,
-            @RequestParam text: String, @RequestParam day: String, @RequestParam reminder: Boolean): Task =
-        service.updateTask(id, text, convertStringToLocalDate(day), reminder, userService.getLoggedInUser())
+    fun put(@PathVariable id: String, @RequestBody body: TaskForm): Task =
+        service.updateTask(id, body.text, convertStringToLocalDate(body.day), body.reminder, userService.getLoggedInUser())
 
     private fun convertStringToLocalDate(value: String): LocalDate {
         try {

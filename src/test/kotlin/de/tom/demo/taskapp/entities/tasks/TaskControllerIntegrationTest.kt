@@ -6,7 +6,6 @@ import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.Task
-import de.tom.demo.taskapp.entities.TaskForm
 import de.tom.demo.taskapp.entities.User
 import io.mockk.InternalPlatformDsl.toStr
 import org.assertj.core.api.Assertions.assertThat
@@ -107,18 +106,16 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
     @Test
     fun `Integration Test - Add a task of user with role ROLE_USER`() {
+        val updatedText = "New Task"
+        val updatedDay = "2022-03-01"
+        val updatedReminder = true
+
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
         val initialTaskList: List<Task> = service.getTasks(johnDoe)
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
-        // request body parameters
-        val body = mapOf<String, Any>(
-            "text" to "New Task",
-            "day" to "2022-03-01",
-            "reminder" to true,
-            "projectName" to DataConfiguration().project.name
-        )
+        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
 
@@ -155,15 +152,19 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
     @Test
     fun `Integration Test - Update a task that exist`() {
+        val updatedText = "Updated Task"
+        val updatedDay = "2022-03-01"
+        val updatedReminder = false
+
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
         // request all tasks of user and select one randomly
         val testTask: Task = getAllTasksOfUser(loginResult).random()
 
         // prepare and send the request
         val url = "http://localhost:${port}${Constants.PATH_TASKS}/${testTask.id}"
-        val params = "?text=Updated Task&day=2022-03-01&reminder=false"
-        val request = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
-        val response: ResponseEntity<String> = client.exchange(url + params, HttpMethod.PUT, request, String::class.java)
+        val body = TaskTestUtils.getTaskForm(updatedText, updatedDay, updatedReminder)
+        val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
+        val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
 
         // check the response
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
