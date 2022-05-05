@@ -141,12 +141,12 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
     fun `Add a task of user with role ROLE_USER`() {
         val loginResponse = loginTestUser(johnDoe)
         val newTask = Task("4711", "New Task", null,
-            LocalDate.now(), true, Constants.TASK_CREATED, null, listOf(),
+            LocalDate.now(), true, Constants.TASK_CREATED, listOf(), listOf(),
             johnDoe, DataConfiguration().project)
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
-        every { service.addTask(any()) } returns newTask.copy(id = UUID.randomUUID().toStr())
+        every { service.addTask(any(), any(), any(), any(), any(), any(), any()) } returns newTask.copy(id = UUID.randomUUID().toStr())
 
         val params = "text=${newTask.text}&day=${newTask.day}&reminder=${newTask.reminder}&reportedByEmail=${DataConfiguration().johnDoe.email}&projectName=${DataConfiguration().project.name}"
         val json = mockMvc.perform(

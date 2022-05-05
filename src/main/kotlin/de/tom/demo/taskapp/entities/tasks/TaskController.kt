@@ -12,7 +12,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeParseException
 
 /**
- * REST Controller with GET, POST, PUT and DELETE methods.
+ * REST Controller for the tasks resource with GET, POST, PUT and DELETE methods.
  */
 //  @CrossOrigin(origins = ["http://localhost:3000"])
 @RestController
@@ -20,20 +20,27 @@ import java.time.format.DateTimeParseException
 class TaskController(val service: TaskService, val userService: UserService, val projectService: ProjectService) {
     private val log = LoggerFactory.getLogger(this.javaClass)
 
-    // GET method to get all tasks from database
-    // http://localhost:8080/api/tasks/
+    /**
+     * Get all tasks of the logged-in user from the database.
+     * GET http://localhost:8080/api/tasks/
+     */
     @GetMapping(path = ["/"])
     @ResponseStatus(HttpStatus.OK)
     fun getAll(): List<Task> = service.getTasks(userService.getLoggedInUser())
 
-    // GET task details based on ‘Id’
-    // http://localhost:8080/api/tasks/{id}
+    /**
+     * Get the tasks with the id of the logged-in user from the database.
+     * GET http://localhost:8080/api/tasks/{id}
+     */
     @GetMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun getById(@PathVariable id: String): Task = service.getTaskOfUser(id, userService.getLoggedInUser())
 
-    // POST a new task
-    // http://localhost:8080/api/tasks/
+    /**
+     * Add a new task to the database and assign it to the project of the given project id.
+     * The task is reported by the logged-in user.
+     * POST http://localhost:8080/api/tasks/
+     */
     @PostMapping(path = ["/"])
     @ResponseStatus(HttpStatus.CREATED)
     fun post(@RequestParam text: String, @RequestParam description: String?,
@@ -44,19 +51,21 @@ class TaskController(val service: TaskService, val userService: UserService, val
         else {
             val reportedBy = userService.getLoggedInUser()
             val project = projectService.getProjectByName(projectName)
-            val task = Task(null, text, description, convertStringToLocalDate(day), reminder,
-                Constants.TASK_CREATED, null, listOf(), reportedBy, project)
-            service.addTask(task)
+            service.addTask(text, description, convertStringToLocalDate(day), reminder, project, reportedBy, null)
         }
 
-    // Remove/Delete task by id
-    // http://localhost:8080/api/tasks/{id}
+    /**
+     * Remove a tasks with id from the database.
+     * DELETE http://localhost:8080/api/tasks/{id}
+     */
     @DeleteMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun delete(@PathVariable id: String): Unit = service.deleteTaskOfUser(id, userService.getLoggedInUser())
 
-    // PUT — Update data of task with id
-    // http://localhost:88080/api/tasks/{id}?text={text}&day={day}&reminder={reminder}
+    /**
+     * Update the content of a task with the id.
+     * PUT http://localhost:88080/api/tasks/{id}?text={text}&day={day}&reminder={reminder}
+     */
     @PutMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun put(@PathVariable id: String,

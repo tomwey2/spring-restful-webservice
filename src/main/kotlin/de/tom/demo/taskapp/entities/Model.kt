@@ -13,7 +13,7 @@ data class Task(
     val day: LocalDate,
     val reminder: Boolean,
     val state: String,
-    val label: String?,
+    val labels: List<String>,
     val assignees: List<User>,
     val reportedBy: User,
     val consistOf: Project,

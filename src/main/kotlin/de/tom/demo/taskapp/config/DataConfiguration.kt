@@ -6,6 +6,7 @@ import de.tom.demo.taskapp.entities.Task
 import de.tom.demo.taskapp.entities.User
 import de.tom.demo.taskapp.entities.projects.ProjectRepository
 import de.tom.demo.taskapp.entities.tasks.TaskRepository
+import de.tom.demo.taskapp.entities.tasks.TaskService
 import de.tom.demo.taskapp.entities.users.UserRepository
 import de.tom.demo.taskapp.entities.users.UserService
 import org.springframework.boot.ApplicationRunner
@@ -20,47 +21,69 @@ class DataConfiguration {
     final val janeDoe = User("jane", "Jane Doe", "1234", "jane.doe@test.com", listOf(Constants.ROLE_USER))
     final val admin = User("admin", "Admin", "1234", "admin@test.com", listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
 
-    final val task1 = Task(
-        "t1", "Food shopping", "",
-        LocalDate.now().plusDays(10), true,
-        Constants.TASK_OPEN, null, listOf(johnDoe), johnDoe, project
+    final val testTasks = listOf(
+        Task("t1",
+            "Food shopping",
+            "One time in week food must be bought.",
+            LocalDate.now().plusDays(10),
+            true,
+            Constants.TASK_OPEN,
+            listOf(), listOf(johnDoe),
+            johnDoe,
+            project
+        ),
+        Task("t2",
+            "Doctor appointment",
+            "Meet the doctor to ask him about new set of medicament",
+            LocalDate.now().plusDays(5),
+            true,
+            Constants.TASK_OPEN,
+            listOf(),
+            listOf(johnDoe, janeDoe),
+            johnDoe,
+            project
+        ),
+        Task("t3",
+            "School party preparation",
+            "",
+            LocalDate.now().minusDays(2),
+            true,
+            Constants.TASK_CLOSED,
+            listOf(),
+            listOf(janeDoe),
+            johnDoe,
+            project),
+        Task("t4",
+            "Backup databases",
+            "",
+            LocalDate.now(),
+            false,
+            Constants.TASK_OPEN,
+            listOf(),
+            listOf(admin),
+            admin,
+            project)
     )
-    final val task2 = Task(
-        "t2", "Doctor appointment", "",
-        LocalDate.now().plusDays(5), true,
-        Constants.TASK_OPEN, null, listOf(johnDoe, janeDoe), johnDoe, project
-    )
-    final val task3 = Task(
-        "t3", "School party preparation", "",
-        LocalDate.now().minusDays(2), true,
-        Constants.TASK_CLOSED, null, listOf(janeDoe), johnDoe, project
-    )
-    final val task4 = Task(
-        "t4", "Backup databases", "",
-        LocalDate.now(), false,
-        Constants.TASK_OPEN, null, listOf(admin), admin, project
-    )
-    val testAllTasks = listOf(task1, task2, task3, task4)
 
     fun getAllTasksOfUser(user: User): List<Task> =
         if (user.roles.contains(Constants.ROLE_ADMIN)) {
-            testAllTasks
+            testTasks
         } else {
-            testAllTasks.filter { it.reportedBy.email == user.email || it.assignees.contains(user)}
+            testTasks.filter { it.reportedBy.email == user.email || it.assignees.contains(user)}
         }
 
     fun getAllTestTasksReportedByUser(user: User): List<Task> =
         if (user.roles.contains(Constants.ROLE_ADMIN)) {
-            testAllTasks
+            testTasks
         } else {
-            testAllTasks.filter { it.reportedBy.email == user.email }
+            testTasks.filter { it.reportedBy.email == user.email }
         }
 
     fun getAllTestTasksAssignedToUser(user: User): List<Task> =
         if (user.roles.contains(Constants.ROLE_ADMIN)) {
-            testAllTasks
+            testTasks
         } else {
-            testAllTasks.filter { it.assignees.contains(user) }
+            testTasks.filter { it.assignees.contains(user) }
         }
 
     fun getOneRandomTestTaskReportedByUser(user: User): Task =
@@ -70,28 +93,29 @@ class DataConfiguration {
     fun databaseInitializer(
         userService: UserService,
         userRepository: UserRepository,
-        taskRepository: TaskRepository,
+        taskService: TaskService,
         projectRepository: ProjectRepository
     ) = ApplicationRunner {
 
         projectRepository.deleteAll()
-        taskRepository.deleteAll()
+        taskService.deleteAll()
         userRepository.deleteAll()
 
         val dbProject = projectRepository.save(project.copy(id = null))
 
-        val dbJohnDoe = userService.registerUser(johnDoe.name, johnDoe.email, johnDoe.password)
-        val dbJaneDoe = userService.registerUser(janeDoe.name, janeDoe.email, janeDoe.password)
-        val dbAdmin = userService.registerUser(admin.name, admin.email, admin.password, listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
+        val userMap = mapOf(
+            johnDoe to userService.registerUser(johnDoe.name, johnDoe.email, johnDoe.password),
+            janeDoe to userService.registerUser(janeDoe.name, janeDoe.email, janeDoe.password),
+            admin to userService.registerUser(admin.name, admin.email, admin.password, listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
+        )
 
-        val dbTask1 = task1.copy(id = null, assignees = listOf(dbJohnDoe), reportedBy = dbJohnDoe, consistOf = dbProject)
-        val dbTask2 =
-            task2.copy(id = null, assignees = listOf(dbJohnDoe, dbJaneDoe), reportedBy = dbJohnDoe, consistOf = dbProject)
-        val dbTask3 = task3.copy(id = null, assignees = listOf(dbJaneDoe), reportedBy = dbJohnDoe, consistOf = dbProject)
-        val dbTask4 = task4.copy(id = null, assignees = listOf(dbAdmin), reportedBy = dbAdmin, consistOf = dbProject)
-
-        listOf(dbTask1, dbTask2, dbTask3, dbTask4).map {
-            taskRepository.save(it)
+        testTasks.map { task: Task ->
+            val reportedBy: User = userMap[task.reportedBy]!!
+            var newTask = taskService.addTask(task.text, task.description, task.day, task.reminder, dbProject, reportedBy, null)
+            task.assignees.map {user: User ->
+                val assignee: User = userMap[user]!!
+                newTask = taskService.assignedUserToTask(newTask, assignee)
+            }
         }
     }
 

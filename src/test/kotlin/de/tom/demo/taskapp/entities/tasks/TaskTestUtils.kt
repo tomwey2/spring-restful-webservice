@@ -8,7 +8,7 @@ object TaskTestUtils {
      * fields createdAt and updatedAt. These fields are actualized automated and cannot be preset.
      */
     val taskComparator = Comparator { task: Task, other: Task ->
-        if (task.id == other.id
+        if (task.text == other.text
         // TODO: compare other fields
         )
             0 else 1

@@ -38,7 +38,7 @@ class TaskServiceTest {
 
     private val idNotExist = "5678"
     private val testTask = Task("4711", "New Task", "",
-        LocalDate.now(), true, Constants.TASK_CLOSED, null,
+        LocalDate.now(), true, Constants.TASK_CLOSED, listOf(),
         listOf(johnDoe), johnDoe, DataConfiguration().project)
 
     @BeforeEach
@@ -59,7 +59,7 @@ class TaskServiceTest {
         every { repository.findAllTasksAssignedToUser(admin.email) } returns DataConfiguration().getAllTestTasksAssignedToUser(admin)
 
         every { repository.delete(any()) } returns Unit
-        every { repository.save(testTask) } returns testTask
+        every { repository.save(any()) } returns testTask
 
     }
 
@@ -90,7 +90,10 @@ class TaskServiceTest {
 
     @Test
     fun `Add a task of user with role ROLE_USER`() {
-        assertEquals(testTask, underTest.addTask(testTask))
+        val newTask = underTest.addTask(
+            testTask.text, testTask.description, testTask.day, testTask.reminder, DataConfiguration().project,
+            johnDoe, janeDoe)
+        assertEquals(testTask, newTask)
     }
 
     @Test
