@@ -71,6 +71,13 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
         db.save(task.copy(assignees = task.assignees.plus(user)))
 
     /**
+     * Change the list of users that are assigned to the task with id
+     * (i.e. replace the old list of users with the new one).
+     */
+    fun changeAssignedUsers(task: Task, assignees: List<User>): Task =
+        db.save(task.copy(assignees = assignees))
+
+    /**
      * Delete a user task that have the given id.
      */
     fun deleteTaskOfUser(id: String, user: User): Unit {
