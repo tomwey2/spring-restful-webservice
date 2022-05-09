@@ -1,6 +1,9 @@
 package de.tom.demo.taskapp.entities
 
+import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
+import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.mongodb.core.index.Indexed
 import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -17,7 +20,9 @@ data class Task(
     val assignees: List<User>,
     val reportedBy: User,
     val consistOf: Project,
+    @CreatedDate
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    @LastModifiedDate
     val updatedAt: LocalDateTime? = null
 )
 
@@ -26,9 +31,12 @@ data class User(
     @Id val id: String?,
     val name: String,
     val password: String,
+    @Indexed(unique=true)
     val email: String,
     val roles: List<String>,
+    @CreatedDate
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    @LastModifiedDate
     val updatedAt: LocalDateTime? = null
 )
 
@@ -36,6 +44,8 @@ data class User(
 data class Project(
     @Id val id: String?,
     val name: String,
+    @CreatedDate
     val createdAt: LocalDateTime = LocalDateTime.now(),
+    @LastModifiedDate
     val updatedAt: LocalDateTime? = null
 )
