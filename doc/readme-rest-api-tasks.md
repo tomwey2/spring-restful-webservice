@@ -1,10 +1,10 @@
 # Definition of REST API tasks
 
-* [GET /api/tasks]()
-* [GET /api/tasks/{id}]()
-* [POST /api/tasks]()
+* [GET /api/tasks](#GET/api/tasks)
+* [GET /api/tasks/{id}](#GET/api/tasks/{id})
+* [POST /api/tasks](#POST/api/tasks)
 
-## <a name="GET /api/tasks"></a> GET /api/tasks
+## <a name="GET/api/tasks"></a> GET /api/tasks
 Get all tasks of the logged-in user from the database.
 The task must be reported by the logged-in user otherwise the server
 returns an error response.
@@ -44,7 +44,7 @@ Example value of response body in case of code 201:
         ]
     }
 
-## <a name="GET /api/tasks/{id}"></a> GET /api/tasks/{id}
+## <a name="GET/api/tasks/{id}"></a> GET /api/tasks/{id}
 Get the tasks with the id of the logged-in user from the database.
 The task must be reported by the logged-in user otherwise the server
 returns an error response.
@@ -82,7 +82,7 @@ Example value of response content:
         "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
     }
 
-## <a name="POST /api/tasks"></a> POST /api/tasks
+## <a name="POST/api/tasks"></a> POST /api/tasks
 Add a new task to the database and assign it to the project of the given project id.
 the task is reported by the logged-in user.
 
