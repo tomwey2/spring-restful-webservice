@@ -15,15 +15,19 @@ The REST API server runs at the port 5000.
 
 ## Definitions
 
-### JSON data definition
-Example JSON data:
+### Data definition
+#### Data model
+The data model consists of three main entities: tasks, users and projects. 
+Each project consists of zero or more tasks. Each task can be assigned only to 
+one project. 
 
-    {
-        "id": "cf2ae94e-3312-418c-8a57-1bfa9a36c63b",
-        "text": "Food shopping",
-        "day": "2022-02-24 18:00:00.000.00.0",
-        "reminder":true
-    }
+The user that creates a task is its reporter. A task can only 
+be reported by exact one user. The user that reports the task can assign
+other user to the task. One task can be assigned to zero or more 
+users. A user can be member of zero or more projects.  
+ 
+![Data model](datamodel.png)
+
 
 ### REST API
 #### Endpoints for user management
@@ -33,7 +37,7 @@ Example JSON data:
 | POST   | /register  | register new user with name, email and password   |
 | GET    | /api/users | get the list of registered users (only for admin) |
 
-After /register the user must sign in via a /login request. 
+After /register the user must sign in via the /login request. 
 The response of the /login request contains the user details and two tokens: an access token for 
 authorization the access to the resources, and a refresh token to renew the access token if it is expired. 
 The token must be sent in the authorization header as Bearer Token.
