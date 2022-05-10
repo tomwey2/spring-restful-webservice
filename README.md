@@ -56,4 +56,17 @@ In order to use the tasks endpoints, the user must be authenticated before.
 Details of the REST api are scripted at:
 [Definition of REST API tasks](doc/readme-rest-api-tasks.md)
 
+## Communication
+The communication protocol between client and server is HTTP. 
+It provides operations (HTTP methods) such as GET, POST, PUT, and DELETE.
+The user must be registered.
+Before the user can access to a resource, e.g. tasks, the user must be login.
+if the server can authenticate the user, it responds with an access token and a
+refresh token (both JSON web token). 
+When the client requests a resource, he must send the access token in the 
+authorization header as bearer token.
+
+The following picture shows this process graphically.
+
+![Communication](communication.png)
 
