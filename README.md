@@ -45,13 +45,15 @@ The token must be sent in the authorization header as Bearer Token.
 #### Endpoints for tasks management
 In order to use the tasks endpoints, the user must be authenticated before.
 
-| Method | URL             | Action                       |
-|--------|-----------------|------------------------------|
-| GET    | /api/tasks      | get all tasks from database  |
-| GET    | /api/tasks/{id} | get task details based on id |
-| POST   | /api/tasks      | create a new task            |
-| DELETE | /api/tasks/{id} | remove/delete task by id     |
-| PUT    | /api/tasks/{id} | update task details by id    |
+| Method | URL                        | Action                                      |
+|--------|----------------------------|---------------------------------------------|
+| GET    | /api/tasks                 | get all tasks from database                 |
+| GET    | /api/tasks/{id}            | get task details based on id                |
+| POST   | /api/tasks                 | create a new task                           |
+| DELETE | /api/tasks/{id}            | remove/delete task by id                    |
+| PUT    | /api/tasks/{id}            | update task details by id                   |
+| GET    | /api/tasks/{id}/reportedby | get the user that has reported the task     |
+| GET    | /api/tasks/{id}/assignees  | get the users that are assigned to the task |
 
 Details of the REST api are scripted at:
 [Definition of REST API tasks](doc/readme-rest-api-tasks.md)
