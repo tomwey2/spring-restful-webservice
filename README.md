@@ -1,6 +1,6 @@
 # Task Tracker REST API
 This project implements a REST API server that manages tasks for a task's tracker system.
-The tasks are stored in an H2 in-memory database. 
+The tasks are stored in a mongodb database that runs in AWS. 
 
 ## Usage
 Build the application with gradle:
