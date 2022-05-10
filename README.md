@@ -53,7 +53,7 @@ In order to use the tasks endpoints, the user must be authenticated before.
 | DELETE | /api/tasks/{id} | remove/delete task by id     |
 | PUT    | /api/tasks/{id} | update task details by id    |
 
-Details of the REST api are descripted at:
-[Definition of REST API tasks](docs/readme-rest-api-tasks.md)
+Details of the REST api are scripted at:
+[Definition of REST API tasks](doc/readme-rest-api-tasks.md)
 
 
