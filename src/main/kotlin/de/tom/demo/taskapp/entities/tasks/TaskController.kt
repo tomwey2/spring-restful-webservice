@@ -251,7 +251,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
             userService.getLoggedInUser())
 
     /**
-     * GET /api/tasks/{id}/reported
+     * GET /api/tasks/{id}/reportedby
      *
      * Get the user who has reported the task with id.
      * The task must be reported by the logged-in user otherwise the server
