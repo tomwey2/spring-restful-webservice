@@ -1,4 +1,4 @@
-# Task Tracker REST API
+# Task Tracker Backend
 This project implements a REST API server that manages tasks for a task's tracker system.
 The tasks are stored in a mongodb database that runs in AWS. 
 
@@ -12,6 +12,10 @@ Run the application:
     ./gradlew bootrun
 
 The REST API server runs at the port 5000.
+
+> Note: add the file 'mongodb.properties' with the the MongoDb connection
+> string. This string contains username and password of the db user and 
+> should be not published in an open repository.
 
 ## Definitions
 

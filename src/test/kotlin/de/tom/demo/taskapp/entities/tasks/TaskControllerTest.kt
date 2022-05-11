@@ -81,7 +81,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
-        every { service.getTasks(any()) } returns DataConfiguration().getAllTasksOfUser(johnDoe)  // hint: any() because logged-in user has another id
+        every { service.getAllTasksReportedByUser(any()) } returns DataConfiguration().getAllTasksOfUser(johnDoe)  // hint: any() because logged-in user has another id
 
         // call the controller with the access token for authorization
         val jsonResponse = mockMvc.perform(

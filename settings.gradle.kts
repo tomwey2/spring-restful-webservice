@@ -1,1 +1,1 @@
-rootProject.name = "spring-task-tracker-rest"
+rootProject.name = "task-tracker-backend-rest-spring-mongodb"
