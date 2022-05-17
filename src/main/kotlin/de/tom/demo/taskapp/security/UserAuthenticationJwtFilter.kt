@@ -46,7 +46,7 @@ class UserAuthenticationJwtFilter(authenticationManager: AuthenticationManager) 
 
         val roles: List<String> = user.authorities.map { it.authority }
         val loginResponse = LoginResponseMessage(user.username, roles, accessToken, refreshToken)
-        response?.contentType ?: MediaType.APPLICATION_JSON_VALUE
+        response?.contentType = MediaType.APPLICATION_JSON_VALUE
         objectMapper.writeValue(response?.outputStream, loginResponse)
         log.info("Authentication of user ${user.username} as $roles was successful.")
     }
@@ -57,8 +57,8 @@ class UserAuthenticationJwtFilter(authenticationManager: AuthenticationManager) 
         failed: AuthenticationException?
     ) {
         log.error("Authentication was unsuccessful. Message: {}", failed?.message)
-        response?.status ?: HttpServletResponse.SC_UNAUTHORIZED
-        response?.contentType ?: MediaType.APPLICATION_JSON_VALUE
+        response?.status = HttpServletResponse.SC_UNAUTHORIZED
+        response?.contentType = MediaType.APPLICATION_JSON_VALUE
         objectMapper.writeValue(response?.outputStream,
             ResponseMessage("Authentication was unsuccessful", failed?.message)
         )
