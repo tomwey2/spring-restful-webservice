@@ -60,7 +60,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
                 project: Project, reportedBy: User, assignedTo: User?): Task {
         val assignees = if (assignedTo != null) listOf(assignedTo) else listOf()
         val newTask = Task(null, text, description, day, reminder,
-            Constants.TASK_CREATED, listOf(), assignees, reportedBy, project)
+            Constants.TASK_OPEN, listOf(), assignees, reportedBy, project)
         return db.save(newTask)
     }
 
