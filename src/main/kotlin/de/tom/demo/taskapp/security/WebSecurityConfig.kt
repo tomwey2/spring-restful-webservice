@@ -12,12 +12,18 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.web.cors.CorsConfiguration
+import org.springframework.web.cors.CorsConfigurationSource
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource
+import java.util.*
 
 
 /**
  * The WebSecurityConfig class is annotated with @EnableWebSecurity to enable Spring Security’s web security
  * support and provide the Spring MVC integration. It also extends WebSecurityConfigurerAdapter and overrides
  * a couple of its methods to set some specifics of the web security configuration.
+ * It provides @HttpSecurity configurations to configure cors, csrf, session management, rules for protected
+ * resources.
  */
 @Configuration
 @EnableWebSecurity
@@ -33,12 +39,15 @@ class WebSecurityConfig(private val userService: UserService,
      * All other paths must be authenticated.
      */
     override fun configure(http: HttpSecurity?) {
+        // this is standard
         val authenticationManager = authenticationManagerBean()
+        // extended with two filter for authentication and authorisation management to handle/check the JWT
         val authenticationJwtFilter = UserAuthenticationJwtFilter(authenticationManager)
         val authorizationJwtFilter = UserAuthorizationJwtFilter()
 
         if (http != null) {
 
+            http.cors()
             http.csrf().disable()
             http.exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
@@ -53,6 +62,38 @@ class WebSecurityConfig(private val userService: UserService,
             http.addFilterBefore(authenticationJwtFilter, UserAuthenticationJwtFilter::class.java)
             http.addFilterBefore(authorizationJwtFilter, UsernamePasswordAuthenticationFilter::class.java)
         }
+    }
+
+    /**
+     * The CORS configuration checks against the actual origin, HTTP methods, and headers of a given request.
+     * By default the application does not permit any cross-origin requests. If client and server run both at
+     * localhost it must be configured explicitly to indicate what should be allowed.
+     * Here the local client application at localhost:3000 can request the server.
+     */
+    @Bean
+    fun corsConfigurationSource(): CorsConfigurationSource {
+        val configuration = CorsConfiguration()
+        configuration.allowedOrigins = Arrays.asList("http://localhost:3000")
+        configuration.allowedMethods = Arrays.asList("GET", "POST", "OPTIONS", "DELETE", "PUT")
+        configuration.allowedHeaders = Arrays.asList(
+            "Content-Type",
+            "content-type",
+            "Authorization",
+            "x-requested-with",
+            "Access-Control-Allow-Origin",
+            "Access-Control-Allow-Headers",
+            "x-auth-token",
+            "x-app-id",
+            "Origin",
+            "Accept",
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        )
+        configuration.allowCredentials = true
+        val source = UrlBasedCorsConfigurationSource()
+        source.registerCorsConfiguration("/**", configuration)
+        return source
     }
 
     override fun configure(auth: AuthenticationManagerBuilder) {
@@ -73,24 +114,4 @@ class WebSecurityConfig(private val userService: UserService,
     }
 }
 
-// http
-// .authorizeRequests()
-// .antMatchers(
-// "/", "/hello", "/api/tasks/**",
-// "/api/users/",
-// "/api/users/register", "/api/users/login"
-// ).permitAll()
-// .antMatchers(
-//
-// ).hasRole("User")
-// .antMatchers(
-//
-// ).hasRole("Admin")
-// .anyRequest()
-// .authenticated()
-// .and()
-// .formLogin()
-// .and()
-// .logout()
-// .logoutSuccessUrl("/")
-//
+
