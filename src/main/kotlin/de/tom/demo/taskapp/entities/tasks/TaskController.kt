@@ -157,7 +157,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *      "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
      *  }
      */
-    @PostMapping(path = ["/"])
+    @PostMapping(path = [""])
     @ResponseStatus(HttpStatus.CREATED)
     fun post(@RequestBody body: TaskForm): Task =
         if (body.text.isEmpty())
