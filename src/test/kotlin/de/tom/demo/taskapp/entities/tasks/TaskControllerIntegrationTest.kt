@@ -116,7 +116,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
-        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
 
@@ -163,7 +163,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // prepare and send the request
         val url = "http://localhost:${port}${Constants.PATH_TASKS}/${testTask.id}"
-        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, DataConfiguration().project.name)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
 

@@ -164,9 +164,8 @@ class TaskController(val service: TaskService, val userService: UserService, val
             throw TaskNotValidException("add task fields: text, day, reminder")
         else {
             val reportedBy = userService.getLoggedInUser()
-            val project = projectService.getProjectByName(body.projectName)
             service.addTask(body.text, body.description, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
-                project, reportedBy, null)
+                reportedBy, null)
         }
 
     /**

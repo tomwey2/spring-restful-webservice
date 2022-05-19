@@ -91,8 +91,7 @@ class TaskServiceTest {
     @Test
     fun `Add a task of user with role ROLE_USER`() {
         val newTask = underTest.addTask(
-            testTask.text, testTask.description, testTask.day, testTask.reminder, DataConfiguration().project,
-            johnDoe, janeDoe)
+            testTask.text, testTask.description, testTask.day, testTask.reminder, johnDoe, janeDoe)
         assertEquals(testTask, newTask)
     }
 

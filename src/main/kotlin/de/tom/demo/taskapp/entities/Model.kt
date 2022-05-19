@@ -19,7 +19,7 @@ data class Task(
     val labels: List<String>,
     val assignees: List<User>,
     val reportedBy: User,
-    val consistOf: Project,
+    val consistOf: Project? = null,
     @CreatedDate
     val createdAt: LocalDateTime = LocalDateTime.now(),
     @LastModifiedDate

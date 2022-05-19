@@ -57,10 +57,10 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * It can have optionally a user who is assigned to it.
      */
     fun addTask(text: String, description: String?, day: LocalDate, reminder: Boolean,
-                project: Project, reportedBy: User, assignedTo: User?): Task {
+                reportedBy: User, assignedTo: User?): Task {
         val assignees = if (assignedTo != null) listOf(assignedTo) else listOf()
         val newTask = Task(null, text, description, day, reminder,
-            Constants.TASK_OPEN, listOf(), assignees, reportedBy, project)
+            Constants.TASK_OPEN, listOf(), assignees, reportedBy)
         return db.save(newTask)
     }
 
