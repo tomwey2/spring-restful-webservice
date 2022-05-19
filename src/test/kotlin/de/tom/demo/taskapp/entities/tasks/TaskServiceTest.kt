@@ -116,14 +116,14 @@ class TaskServiceTest {
         val savedTask = testTask.copy(text = "updated", day = testTask.day, reminder = testTask.reminder)
         every { repository.save(any()) } returns savedTask
 
-        val result = underTest.updateTask(testTask.id!!, "updated", testTask.day, testTask.reminder, johnDoe)
+        val result = underTest.updateTask(testTask.id!!, "updated", null, testTask.day, testTask.reminder, johnDoe)
         assertThat(result.text).isEqualTo(savedTask.text)
     }
 
     @Test
     fun `Failed tp update a task which does not exist`() {
         assertThrows( TaskNotFoundException::class.java) {
-            underTest.updateTask(idNotExist, testTask.text, testTask.day, testTask.reminder, johnDoe) }
+            underTest.updateTask(idNotExist, testTask.text, null, testTask.day, testTask.reminder, johnDoe) }
     }
 
 }

@@ -97,8 +97,8 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * Update the content of a task. That can be the text, day or the reminder flag.
      * TODO: add the description field
      */
-    fun updateTask(id: String, text: String, day: LocalDate, reminder: Boolean, user: User): Task {
-        val updatedTask = getTaskOfUser(id, user).copy(text = text, day = day, reminder = reminder)
+    fun updateTask(id: String, text: String, description: String?, day: LocalDate, reminder: Boolean, user: User): Task {
+        val updatedTask = getTaskOfUser(id, user).copy(text = text, description = description, day = day, reminder = reminder)
         return db.save(updatedTask)
     }
 

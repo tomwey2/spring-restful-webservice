@@ -246,7 +246,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
     @PutMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun put(@PathVariable id: String, @RequestBody body: TaskForm): Task =
-        service.updateTask(id, body.text, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
+        service.updateTask(id, body.text, body.description, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
             userService.getLoggedInUser())
 
     /**
