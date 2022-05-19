@@ -21,7 +21,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
     private val log = LoggerFactory.getLogger(this.javaClass)
 
     /**
-     * GET /api/tasks/
+     * GET /api/tasks
      *
      * Get all tasks of the logged-in user from the database.
      * The task must be reported by the logged-in user otherwise the server
@@ -31,7 +31,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *
      * @sample
      * Request:
-     * GET /api/tasks/
+     * GET /api/tasks
      * Content type: application/json
      * Authorization: Bearer Token: access token from login
      *
@@ -61,7 +61,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *      ]
      *  }
      */
-    @GetMapping(path = ["/"])
+    @GetMapping(path = [""])
     @ResponseStatus(HttpStatus.OK)
     fun getAll(): List<Task> = service.getAllTasksReportedByUser(userService.getLoggedInUser())
 
