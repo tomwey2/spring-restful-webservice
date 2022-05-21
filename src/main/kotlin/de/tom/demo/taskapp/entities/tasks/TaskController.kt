@@ -338,4 +338,18 @@ class TaskController(val service: TaskService, val userService: UserService, val
     }
 
 
+    @GetMapping(path = ["/{id}/labels"])
+    @ResponseStatus(HttpStatus.OK)
+    fun getLabelsOfTaskWithId(@PathVariable id: String): List<String> =
+        service.getTaskOfUser(id, userService.getLoggedInUser())
+            .labels
+
+    @PutMapping(path = ["/{id}/labels"])
+    @ResponseStatus(HttpStatus.OK)
+    fun changeLabels(@PathVariable id: String, @RequestBody labels: List<String>): Task {
+        val task = service.getTaskOfUser(id, userService.getLoggedInUser())
+        return service.changeLabels(task, labels)
+    }
+
+
 }
