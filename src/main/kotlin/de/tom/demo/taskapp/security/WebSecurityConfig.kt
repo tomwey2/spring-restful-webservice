@@ -53,10 +53,14 @@ class WebSecurityConfig(private val userService: UserService,
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
             http.authorizeRequests()
-                .antMatchers("/register", "/login").permitAll()
-                .antMatchers("/hello").permitAll()
-                .antMatchers("/api/users/me", "/api/tasks/**").hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
-                .antMatchers("/api/users/").hasAnyAuthority("ROLE_ADMIN")
+                .antMatchers("/register", "/login")
+                    .permitAll()
+                .antMatchers("/hello")
+                    .permitAll()
+                .antMatchers("/api/users", "/api/users/me", "/api/tasks/**")
+                    .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                .antMatchers("/api/users/**")
+                    .hasAnyAuthority("ROLE_ADMIN")
                 .anyRequest().authenticated()
 
             http.addFilterBefore(authenticationJwtFilter, UserAuthenticationJwtFilter::class.java)
