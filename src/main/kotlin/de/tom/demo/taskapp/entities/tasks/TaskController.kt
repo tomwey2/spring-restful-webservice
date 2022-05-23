@@ -125,9 +125,9 @@ class TaskController(val service: TaskService, val userService: UserService, val
      * Example value of request body:
      *  {
      *      "text": "New Task",
+     *      "description": "This is a new task.",
      *      "day": "2022-03-01",
      *      "reminder": true,
-     *      "projectName": "p1"
      *  }
      *
      * Response:
@@ -149,10 +149,6 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *          "id": "6274b02b46439e7351056510", "name": "John Doe", "password": "...",
      *          "email": "john.doe@test.com", "roles": ["ROLE_USER"],
      *          "createdAt": "2022-05-06T09:20:43.174","updatedAt": null
-     *      },
-     *      "consistOf": {
-     *          "id": "6274b02a46439e735105650f", "name": "p1",
-     *          "createdAt": "2022-05-06T09:20:39.844","updatedAt": null
      *      },
      *      "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
      *  }
@@ -247,7 +243,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
     @ResponseStatus(HttpStatus.OK)
     fun put(@PathVariable id: String, @RequestBody body: TaskForm): Task =
         service.updateTask(id, body.text, body.description, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
-            userService.getLoggedInUser())
+            body.state, userService.getLoggedInUser())
 
     /**
      * GET /api/tasks/{id}/reportedby
