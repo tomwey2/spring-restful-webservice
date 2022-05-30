@@ -29,7 +29,7 @@ class UserAlreadyExistException(username: String) : RuntimeException("User $user
 class CredentialsNotValidException(error: String) : RuntimeException(error)
 
 @ResponseStatus(value = HttpStatus.UNAUTHORIZED)
-class UserAuthenticationFailedException : RuntimeException("Cannot authentication user")
+class UserAuthorizationFailedException(message: String) : RuntimeException(message)
 
 /**
  * Exception handler for project not found. It responds the 404 NOT FOUND status with

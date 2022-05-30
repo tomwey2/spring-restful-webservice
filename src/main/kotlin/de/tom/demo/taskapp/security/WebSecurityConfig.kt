@@ -53,7 +53,7 @@ class WebSecurityConfig(private val userService: UserService,
             http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 
             http.authorizeRequests()
-                .antMatchers("/register", "/login")
+                .antMatchers("/register", "/login", "/refreshtoken")
                     .permitAll()
                 .antMatchers("/hello")
                     .permitAll()

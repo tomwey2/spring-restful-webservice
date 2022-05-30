@@ -4,15 +4,16 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.userdetails.User
+import org.springframework.security.core.userdetails.UserDetails
 import java.util.*
 
 val algorithm: Algorithm? = Algorithm.HMAC256("secret")
 
-fun createToken(user: User, expired: Long, url: String) =
+fun createToken(user: UserDetails, expired: Long, url: String) =
     JWT.create()
         .withSubject(user.username)
         .withExpiresAt(Date(System.currentTimeMillis() + expired))
@@ -37,3 +38,8 @@ fun verifyToken(token: String): UsernamePasswordAuthenticationToken {
     return UsernamePasswordAuthenticationToken(username, null, authorities)
 }
 
+fun getUsernameByToken(token: String): String {
+    val verifier: JWTVerifier = JWT.require(algorithm).build()
+    val decodedJwt: DecodedJWT = verifier.verify(token)
+    return decodedJwt.subject
+}

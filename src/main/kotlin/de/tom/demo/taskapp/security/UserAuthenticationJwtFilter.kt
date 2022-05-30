@@ -1,9 +1,11 @@
 package de.tom.demo.taskapp.security
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.ResponseMessage
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -41,8 +43,8 @@ class UserAuthenticationJwtFilter(authenticationManager: AuthenticationManager) 
         authentication: Authentication?
     ) {
         val user: User = authentication?.principal as User
-        val accessToken = createToken(user, 10 * 60 * 1000, request?.requestURL.toString())
-        val refreshToken = createToken(user, 30 * 60 * 1000, request?.requestURL.toString())
+        val accessToken = createToken(user, Constants.ACCESS_TOKEN_EXPIRED_IN_MSEC, request?.requestURL.toString())
+        val refreshToken = createToken(user, Constants.REFRESH_TOKEN_EXPIRED_IN_MSEC, request?.requestURL.toString())
 
         val roles: List<String> = user.authorities.map { it.authority }
         val loginResponse = LoginResponseMessage(user.username, roles, accessToken, refreshToken)

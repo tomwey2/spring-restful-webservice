@@ -10,3 +10,7 @@ data class TaskForm(val text: String, val description: String?, val day: String,
 data class ResponseMessage(val message: String, val text: String?)
 data class LoginResponseMessage(val email: String, val roles: List<String>, val accessToken: String, val refreshToken: String)
 
+data class RefreshTokenRequestMessage(val refreshToken: String)
+data class RefreshTokenResponseMessage(val accessToken: String, val refreshToken: String)
+
+
