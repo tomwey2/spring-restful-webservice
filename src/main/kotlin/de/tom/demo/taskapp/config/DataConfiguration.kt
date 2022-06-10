@@ -112,6 +112,9 @@ class DataConfiguration {
         testTasks.map { task: Task ->
             val reportedBy: User = userMap[task.reportedBy]!!
             var newTask = taskService.addTask(task.text, task.description, task.day, task.reminder, reportedBy, null)
+            if (task.state == Constants.TASK_CLOSED) {
+                newTask = taskService.changeState(newTask.id ?: "", task.state, reportedBy)
+            }
             task.assignees.map {user: User ->
                 val assignee: User = userMap[user]!!
                 newTask = taskService.assignedUserToTask(newTask, assignee)

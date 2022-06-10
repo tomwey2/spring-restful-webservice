@@ -61,9 +61,22 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *      ]
      *  }
      */
+    /*
     @GetMapping(path = [""])
     @ResponseStatus(HttpStatus.OK)
     fun getAll(): List<Task> = service.getAllTasksReportedByUser(userService.getLoggedInUser())
+
+
+     */
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    fun get(@RequestParam(value = "query", required=false) query: String?): List<Task> {
+        log.info("query=${query}")
+        if (query == null) {
+            return service.getAllTasksReportedByUser(userService.getLoggedInUser())
+        }
+        return service.getTasksbyQuery(query, userService.getLoggedInUser())
+    }
 
     /**
      * GET /api/tasks/{id}
