@@ -67,27 +67,19 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
             searchAssigneeName = user.username
         }
 
-        log.info("!!!! $searchState $searchReporter && $searchAssignee")
         return if ((searchIsOpen || searchIsClosed) && searchReporter && searchAssignee) {
-            log.info("findTasksSearchStateReporterAssignee($searchState, $searchReporterName, $searchAssigneeName)")
             db.findTasksByStateAndReporterAndAssignee(searchState, searchReporterName, searchAssigneeName)
         } else if ((searchIsOpen || searchIsClosed) && searchReporter && !searchAssignee) {
-            log.info("findTasksSearchStateReporter($searchState, $searchReporterName)")
             db.findTasksByStateAndReporter(searchState, searchReporterName)
         } else if ((searchIsOpen || searchIsClosed) && !searchReporter && searchAssignee) {
-            log.info("findTasksSearchStateAssignee($searchState, $searchAssigneeName)")
             db.findTasksByStateAndAssignee(searchState, searchAssigneeName)
         } else if ((searchIsOpen || searchIsClosed) && !searchReporter && !searchAssignee) {
-            log.info("findTasksSearchState($searchState)")
             db.findTasksByState(searchState)
         } else if (!(searchIsOpen || searchIsClosed) && searchReporter && searchAssignee) {
-            log.info("findTasksSearchReporterAssignee($searchReporterName, $searchAssigneeName)")
             db.findTasksByReporterAndAssignee(searchReporterName, searchAssigneeName)
         } else if (!(searchIsOpen || searchIsClosed) && searchReporter && !searchAssignee) {
-            log.info("findTasksSearchReporter($searchReporterName)")
             db.findTasksByReporter(searchReporterName)
         } else if (!(searchIsOpen || searchIsClosed) && !searchReporter && searchAssignee) {
-            log.info("findTasksSearchAssignee($searchAssigneeName)")
             db.findTasksByAssignee(searchAssigneeName)
         } else listOf()
     }
