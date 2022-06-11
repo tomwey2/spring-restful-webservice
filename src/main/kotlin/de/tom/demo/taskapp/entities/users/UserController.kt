@@ -19,7 +19,7 @@ class UserController(val service: UserService) {
 
     @GetMapping(path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
-    fun getUserById(@PathVariable id: String): User = service.getUser(id)
+    fun getUserById(@PathVariable id: String): User = service.getUserById(id)
 
     @GetMapping(path = ["/me"])
     @ResponseStatus(HttpStatus.OK)

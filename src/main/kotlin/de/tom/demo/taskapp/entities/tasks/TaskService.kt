@@ -8,7 +8,6 @@ import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
-import java.util.*
 
 /**
  * Tasks service class with business functions to add, update and delete a tasks.
@@ -40,9 +39,9 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * If the key ist not found in the query string then the function returns an empty string.
      */
     fun getValueFromQueryByKey(query: String, key: String): String {
-        val value: String = Regex(pattern = """$key:(?:(@me)|([\w\d._%+-@][^, ]+))""")
+        val value: String = Regex(pattern = """(?i)$key(?-i):(?:(@me)|([\w\d._%+-@][^, ]+))""")
             .find(input = query)?.value.orEmpty()
-        return value.removePrefix("$key:")
+        return value.replaceFirst("$key:", "", ignoreCase = true);
     }
 
     /**
@@ -51,44 +50,43 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * assignedto:<name>. The key:value pairs must be seperated by semicolon.
      * If <name> has the value '@me' then the value is replaced by the name of the given username.
      */
-    fun getTasksbyQuery(query: String, user: User): List<Task> {
-        val lowerQuery = query.lowercase(Locale.getDefault())
-        val searchIsOpen = lowerQuery.contains("is:open")
-                || lowerQuery.contains("is:closed")
-        val searchState = if (searchIsOpen) getValueFromQueryByKey(lowerQuery, "is:") else ""
+    fun getTasksByQuery(query: String, user: User): List<Task> {
+        val searchIsOpen = query.contains("is:open", ignoreCase = true)
+        val searchIsClosed = query.contains("is:closed", ignoreCase = true)
+        val searchState = if (searchIsOpen) Constants.TASK_OPEN else if (searchIsClosed) Constants.TASK_CLOSED  else ""
 
-        val searchReporter = lowerQuery.contains("reportedby:")
-        var searchReporterName = if (searchReporter) getValueFromQueryByKey(lowerQuery, "reportedby") else ""
+        val searchReporter = query.contains("reportedby:", ignoreCase = true)
+        var searchReporterName = if (searchReporter) getValueFromQueryByKey(query, "reportedby") else ""
         if (searchReporterName == "@me") {
-            searchReporterName = user.email
+            searchReporterName = user.username
         }
 
-        val searchAssignee = lowerQuery.contains("assignedto:")
-        var searchAssigneeName = if (searchAssignee) getValueFromQueryByKey(lowerQuery, "assignedto") else ""
+        val searchAssignee = query.contains("assignedto:", ignoreCase = true)
+        var searchAssigneeName = if (searchAssignee) getValueFromQueryByKey(query, "assignedto") else ""
         if (searchAssigneeName == "@me") {
-            searchAssigneeName = user.email
+            searchAssigneeName = user.username
         }
 
-        log.info("!!!! $searchIsOpen && $searchReporter && $searchAssignee")
-        return if (searchIsOpen && searchReporter && searchAssignee) {
+        log.info("!!!! $searchState $searchReporter && $searchAssignee")
+        return if ((searchIsOpen || searchIsClosed) && searchReporter && searchAssignee) {
             log.info("findTasksSearchStateReporterAssignee($searchState, $searchReporterName, $searchAssigneeName)")
             db.findTasksByStateAndReporterAndAssignee(searchState, searchReporterName, searchAssigneeName)
-        } else if (searchIsOpen && searchReporter && !searchAssignee) {
+        } else if ((searchIsOpen || searchIsClosed) && searchReporter && !searchAssignee) {
             log.info("findTasksSearchStateReporter($searchState, $searchReporterName)")
             db.findTasksByStateAndReporter(searchState, searchReporterName)
-        } else if (searchIsOpen && !searchReporter && searchAssignee) {
+        } else if ((searchIsOpen || searchIsClosed) && !searchReporter && searchAssignee) {
             log.info("findTasksSearchStateAssignee($searchState, $searchAssigneeName)")
             db.findTasksByStateAndAssignee(searchState, searchAssigneeName)
-        } else if (searchIsOpen && !searchReporter && !searchAssignee) {
+        } else if ((searchIsOpen || searchIsClosed) && !searchReporter && !searchAssignee) {
             log.info("findTasksSearchState($searchState)")
             db.findTasksByState(searchState)
-        } else if (!searchIsOpen && searchReporter && searchAssignee) {
+        } else if (!(searchIsOpen || searchIsClosed) && searchReporter && searchAssignee) {
             log.info("findTasksSearchReporterAssignee($searchReporterName, $searchAssigneeName)")
             db.findTasksByReporterAndAssignee(searchReporterName, searchAssigneeName)
-        } else if (!searchIsOpen && searchReporter && !searchAssignee) {
+        } else if (!(searchIsOpen || searchIsClosed) && searchReporter && !searchAssignee) {
             log.info("findTasksSearchReporter($searchReporterName)")
             db.findTasksByReporter(searchReporterName)
-        } else if (!searchIsOpen && !searchReporter && searchAssignee) {
+        } else if (!(searchIsOpen || searchIsClosed) && !searchReporter && searchAssignee) {
             log.info("findTasksSearchAssignee($searchAssigneeName)")
             db.findTasksByAssignee(searchAssigneeName)
         } else listOf()

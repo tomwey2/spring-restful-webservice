@@ -23,10 +23,10 @@ class AuthController(val service: UserService) {
     @PostMapping(path = [Constants.PATH_REGISTER])
     @ResponseStatus(HttpStatus.CREATED)
     fun register(@RequestBody body: RegisterForm) : User =
-        if (body.name.isEmpty() || body.email.isEmpty() || body.password.isEmpty())
-            throw CredentialsNotValidException("add credential fields: name, email, password")
+        if (body.name.isEmpty() || body.username.isEmpty() || body.email.isEmpty() || body.password.isEmpty())
+            throw CredentialsNotValidException("add credential fields: name, username, email, password")
         else
-            service.registerUser(body.name, body.email, body.password)
+            service.registerUser(body.name, body.username, body.email, body.password)
 
     @GetMapping(path = ["/username"])
     @ResponseBody

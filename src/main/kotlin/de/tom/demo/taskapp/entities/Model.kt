@@ -29,10 +29,12 @@ data class Task(
 @Document(collection = "users")
 data class User(
     @Id val id: String?,
-    val name: String,
+    val name: String,           // user's full name
+    @Indexed(unique=true)
+    val username: String,       // user's nickname (unique)
     val password: String,
     @Indexed(unique=true)
-    val email: String,
+    val email: String,          // user's email address (unique)
     val roles: List<String>,
     @CreatedDate
     val createdAt: LocalDateTime = LocalDateTime.now(),

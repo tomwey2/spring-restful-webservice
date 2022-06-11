@@ -29,7 +29,7 @@ class UserAuthenticationJwtFilter(authenticationManager: AuthenticationManager) 
     private val objectMapper = ObjectMapper()
 
     override fun attemptAuthentication(request: HttpServletRequest?, response: HttpServletResponse?): Authentication {
-        val username = request?.getParameter("email")
+        val username = request?.getParameter("username")
         val password = request?.getParameter("password")
         log.info("User $username attempts authentication")
         val authenticationToken = UsernamePasswordAuthenticationToken(username, password)

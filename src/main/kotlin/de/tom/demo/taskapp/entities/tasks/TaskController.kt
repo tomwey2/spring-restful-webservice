@@ -75,7 +75,7 @@ class TaskController(val service: TaskService, val userService: UserService, val
         if (query == null) {
             return service.getAllTasksReportedByUser(userService.getLoggedInUser())
         }
-        return service.getTasksbyQuery(query, userService.getLoggedInUser())
+        return service.getTasksByQuery(query, userService.getLoggedInUser())
     }
 
     /**

@@ -22,24 +22,24 @@ interface TaskRepository : MongoRepository<Task, String> {
     @Query("{'assignees' : { \$elemMatch : {'email': '?0' }}}")
     fun findAllTasksAssignedToUser(email: String): List<Task>
 
-    @Query("{'state': '?0', 'reportedBy.email' : '?1', 'assignees.email' : '?2' }")
-    fun findTasksByStateAndReporterAndAssignee(state: String, emailReportedBy: String, emailAssignedTo: String): List<Task>
+    @Query("{'state': '?0', 'reportedBy.username' : { \$regex: '(?i)?1(?-i)'}, 'assignees.username' : { \$regex: '(?i)?2(?-i)'} }")
+    fun findTasksByStateAndReporterAndAssignee(state: String, reportedBy: String, assignedTo: String): List<Task>
 
-    @Query("{'state': '?0', 'reportedBy.email' : '?1'}")
-    fun findTasksByStateAndReporter(state: String, emailReportedBy: String): List<Task>
+    @Query("{'state': '?0', 'reportedBy.username' : { \$regex: '(?i)?1(?-i)'}}")
+    fun findTasksByStateAndReporter(state: String, reportedBy: String): List<Task>
 
-    @Query("{'state': '?0', 'assignees.email' : '?1' }")
-    fun findTasksByStateAndAssignee(state: String, emailAssignedTo: String): List<Task>
+    @Query("{'state': '?0', 'assignees.username' : { \$regex: '(?i)?1(?-i)'} }")
+    fun findTasksByStateAndAssignee(state: String, assignedTo: String): List<Task>
 
-    @Query("{'reportedBy.email' : '?0', 'assignees.email' : '?1' }")
-    fun findTasksByReporterAndAssignee(emailReportedBy: String, emailAssignedTo: String): List<Task>
+    @Query("{'reportedBy.username' : { \$regex: '(?i)?0(?-i)'}, 'assignees.username' : { \$regex: '(?i)?1(?-i)'} }")
+    fun findTasksByReporterAndAssignee(reportedBy: String, assignedTo: String): List<Task>
 
     @Query("{'state': '?0' }")
     fun findTasksByState(state: String): List<Task>
 
-    @Query("{'reportedBy.email' : '?0'}")
-    fun findTasksByReporter(emailReportedBy: String): List<Task>
+    @Query("{'reportedBy.username' : { \$regex: '(?i)?0(?-i)'} }")
+    fun findTasksByReporter(reportedBy: String): List<Task>
 
-    @Query("{'assignees.email' : '?0' }")
-    fun findTasksByAssignee(emailAssignedTo: String): List<Task>
+    @Query("{'assignees.username' : '?0' }")
+    fun findTasksByAssignee(assignedTo: String): List<Task>
 }
