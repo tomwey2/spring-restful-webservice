@@ -2,14 +2,13 @@ package de.tom.demo.taskapp.entities.tasks
 
 import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotValidException
-import de.tom.demo.taskapp.entities.Task
-import de.tom.demo.taskapp.entities.TaskForm
-import de.tom.demo.taskapp.entities.User
+import de.tom.demo.taskapp.entities.*
 import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.*
+import javax.servlet.http.HttpServletRequest
 
 /**
  * REST Controller for the tasks resource with GET, POST, PUT and DELETE methods.
@@ -61,21 +60,16 @@ class TaskController(val service: TaskService, val userService: UserService, val
      *      ]
      *  }
      */
-    /*
-    @GetMapping(path = [""])
-    @ResponseStatus(HttpStatus.OK)
-    fun getAll(): List<Task> = service.getAllTasksReportedByUser(userService.getLoggedInUser())
-
-
-     */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun get(@RequestParam(value = "query", required=false) query: String?): List<Task> {
+    fun get(request: HttpServletRequest, @RequestParam(value = "query", required=false) query: String?): TaskListResponse {
+        val host = request.getHeader("Host")
+        log.info("request=${request.queryString}");
         log.info("query=${query}")
         if (query == null) {
-            return service.getAllTasksReportedByUser(userService.getLoggedInUser())
+            return service.getTasks(userService.getLoggedInUser(), host)
         }
-        return service.getTasksByQuery(query, userService.getLoggedInUser())
+        return service.getTasksByQuery(query, userService.getLoggedInUser(), host)
     }
 
     /**

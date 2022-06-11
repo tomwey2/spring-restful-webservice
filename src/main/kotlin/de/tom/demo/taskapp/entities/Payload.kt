@@ -13,4 +13,11 @@ data class LoginResponseMessage(val username: String, val roles: List<String>, v
 data class RefreshTokenRequestMessage(val refreshToken: String)
 data class RefreshTokenResponseMessage(val accessToken: String, val refreshToken: String)
 
+data class TaskResponse(
+    val href: String,
+    val task: Task)
+data class TaskListResponse(
+    val href: String,
+    val total: Int, val open: Int, val closed: Int,
+    val items: List<TaskResponse>)
 
