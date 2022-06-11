@@ -87,7 +87,7 @@ class DataConfiguration {
             true,
             Constants.TASK_CLOSED,
             listOf(),
-            listOf(janeDoe, bret),
+            listOf(janeDoe, bret, johnDoe),
             delphine,
             project),
         Task("t4",
