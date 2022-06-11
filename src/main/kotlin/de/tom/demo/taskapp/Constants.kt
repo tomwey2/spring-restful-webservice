@@ -17,6 +17,6 @@ object Constants {
     const val PATH_USERS = "/api/users"
     const val PATH_REFRESHTOKEN = "/refreshtoken"
 
-    const val ACCESS_TOKEN_EXPIRED_IN_MSEC: Long = 10 * 60 * 1000         // 10 minutes
+    const val ACCESS_TOKEN_EXPIRED_IN_MSEC: Long = 50 * 60 * 1000         // 50 minutes
     const val REFRESH_TOKEN_EXPIRED_IN_MSEC: Long = 24 * 60 * 60 * 1000   // 1 day
 }
