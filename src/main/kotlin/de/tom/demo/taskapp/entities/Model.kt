@@ -8,24 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document
 import java.time.LocalDate
 import java.time.LocalDateTime
 
-@Document(collection = "tasks")
-data class Task(
-    @Id val id: String?,
-    val text: String,
-    val description: String?,
-    val day: LocalDate,
-    val reminder: Boolean,
-    val state: String,
-    val labels: List<String>,
-    val assignees: List<User>,
-    val reportedBy: User,
-    val consistOf: Project? = null,
-    @CreatedDate
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-    @LastModifiedDate
-    val updatedAt: LocalDateTime? = null
-)
-
 @Document(collection = "users")
 data class User(
     @Id val id: String?,

@@ -1,8 +1,5 @@
 package de.tom.demo.taskapp.entities.tasks
 
-import de.tom.demo.taskapp.config.DataConfiguration
-import de.tom.demo.taskapp.entities.Task
-
 object TaskTestUtils {
     /**
      * This comparator is used in unit tests. it compares twi tasks without comparing the

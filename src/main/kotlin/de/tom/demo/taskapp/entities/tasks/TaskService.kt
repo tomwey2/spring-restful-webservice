@@ -15,26 +15,13 @@ import java.time.LocalDate
 class TaskService(val db: TaskRepository, val userService: UserService) {
     private val log = LoggerFactory.getLogger(this.javaClass)
 
-    fun createTaskResponse(task: Task, host: String): TaskResponse =
-        TaskResponse("http://$host${Constants.PATH_TASKS}/${task.id}", task)
-
-    fun createTaskListResponse(totalTasks: List<Task>, resultTasks: List<Task>, host: String, query: String): TaskListResponse {
-        val amountOfTasks = totalTasks.count()
-        val amountOfOpenTasks = totalTasks.filter { it.state == Constants.TASK_OPEN }.count()
-        val amountOfClosedTasks = totalTasks.filter { it.state == Constants.TASK_CLOSED }.count()
-        val href = "http://$host${Constants.PATH_TASKS}" + if (query.length > 0) "?$query" else ""
-        return TaskListResponse(
-            href,
-            amountOfTasks, amountOfOpenTasks, amountOfClosedTasks,
-            resultTasks.map { createTaskResponse(it, host) })
-    }
     /**
      * Gets all tasks which are either reported by or assigned to the user.
      * If the user has the ADMIN role then gets all tasks.
      */
-    fun getTasks(user: User, host: String): TaskListResponse {
+    fun getTasks(user: User): List<Task> {
         val tasks = if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.email)
-        return createTaskListResponse(tasks, tasks, host, "")
+        return tasks
     }
 
     /**
@@ -62,7 +49,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * assignedto:<name>. The key:value pairs must be seperated by semicolon.
      * If <name> has the value '@me' then the value is replaced by the name of the given username.
      */
-    fun getTasksByQuery(query: String, user: User, host: String): TaskListResponse {
+    fun getTasksByQuery(query: String, user: User, host: String): List<Task> {
         val searchIsOpen = query.contains("is:open", ignoreCase = true)
         val searchIsClosed = query.contains("is:closed", ignoreCase = true)
         val searchState = if (searchIsOpen) Constants.TASK_OPEN else if (searchIsClosed) Constants.TASK_CLOSED  else ""
@@ -94,7 +81,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
                 tasks.filter { it.state == Constants.TASK_CLOSED }
             else listOf<Task>()
 
-        return createTaskListResponse(tasks, resultTasks, host, query)
+        return tasks
     }
 
 

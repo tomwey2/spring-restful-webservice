@@ -3,7 +3,6 @@ package de.tom.demo.taskapp.entities.tasks
 import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.config.DataConfiguration
-import de.tom.demo.taskapp.entities.Task
 import de.tom.demo.taskapp.entities.users.UserService
 import io.mockk.every
 import io.mockk.junit5.MockKExtension

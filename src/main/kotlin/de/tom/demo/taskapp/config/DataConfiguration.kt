@@ -2,10 +2,9 @@ package de.tom.demo.taskapp.config
 
 import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.entities.Project
-import de.tom.demo.taskapp.entities.Task
+import de.tom.demo.taskapp.entities.tasks.Task
 import de.tom.demo.taskapp.entities.User
 import de.tom.demo.taskapp.entities.projects.ProjectRepository
-import de.tom.demo.taskapp.entities.tasks.TaskRepository
 import de.tom.demo.taskapp.entities.tasks.TaskService
 import de.tom.demo.taskapp.entities.users.UserRepository
 import de.tom.demo.taskapp.entities.users.UserService

@@ -1,6 +1,5 @@
 package de.tom.demo.taskapp.entities.tasks
 
-import de.tom.demo.taskapp.entities.Task
 import org.springframework.data.mongodb.repository.MongoRepository
 import org.springframework.data.mongodb.repository.Query
 import org.springframework.stereotype.Repository

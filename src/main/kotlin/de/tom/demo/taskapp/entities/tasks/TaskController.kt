@@ -63,12 +63,12 @@ class TaskController(val service: TaskService, val userService: UserService, val
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun get(request: HttpServletRequest, @RequestParam(value = "query", required=false) query: String?): TaskListResponse {
+    fun get(request: HttpServletRequest, @RequestParam(value = "query", required=false) query: String?): List<Task> {
         val host = request.getHeader("Host")
         log.info("request=${request.queryString}");
         log.info("query=${query}")
         if (query == null) {
-            return service.getTasks(userService.getLoggedInUser(), host)
+            return service.getTasks(userService.getLoggedInUser())
         }
         return service.getTasksByQuery(query, userService.getLoggedInUser(), host)
     }

@@ -6,7 +6,6 @@ import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.LoginResponseMessage
-import de.tom.demo.taskapp.entities.Task
 import de.tom.demo.taskapp.entities.TaskForm
 import de.tom.demo.taskapp.entities.User
 import de.tom.demo.taskapp.entities.projects.ProjectService
