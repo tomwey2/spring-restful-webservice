@@ -7,6 +7,7 @@ import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import javax.servlet.http.HttpServletRequest
 
@@ -354,5 +355,26 @@ class TaskController(val service: TaskService, val userService: UserService, val
         return service.changeLabels(task, labels)
     }
 
+    @PostMapping(path = ["/{id}/close"])
+    fun closeTask(@PathVariable id: String): ResponseEntity<Any> {
+        val loggedInUser = userService.getLoggedInUser()
+        val task = service.getTaskOfUser(id, loggedInUser)
+        if (task.state == Constants.TASK_OPEN) {
+            return ResponseEntity.ok(service.changeState(id, Constants.TASK_CLOSED, loggedInUser))
+        }
+        return ResponseEntity.badRequest()
+            .body("Task status is already " + task.state + ".");
+    }
+
+    @PostMapping(path = ["/{id}/open"])
+    fun openTask(@PathVariable id: String): ResponseEntity<Any> {
+        val loggedInUser = userService.getLoggedInUser()
+        val task = service.getTaskOfUser(id, loggedInUser)
+        if (task.state == Constants.TASK_CLOSED) {
+            return ResponseEntity.ok(service.changeState(id, Constants.TASK_OPEN, loggedInUser))
+        }
+        return ResponseEntity.badRequest()
+            .body("Task status is already " + task.state + ".");
+    }
 
 }
