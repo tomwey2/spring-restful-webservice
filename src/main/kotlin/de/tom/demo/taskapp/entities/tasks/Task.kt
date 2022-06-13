@@ -6,6 +6,8 @@ import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.Id
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.mongodb.core.mapping.Document
+import org.springframework.hateoas.RepresentationModel
+import org.springframework.hateoas.server.core.Relation
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -26,4 +28,3 @@ data class Task(
     @LastModifiedDate
     val updatedAt: LocalDateTime? = null
 )
-

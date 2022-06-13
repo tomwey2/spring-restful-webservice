@@ -49,7 +49,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * assignedto:<name>. The key:value pairs must be seperated by semicolon.
      * If <name> has the value '@me' then the value is replaced by the name of the given username.
      */
-    fun getTasksByQuery(query: String, user: User, host: String): List<Task> {
+    fun getTasksByQuery(query: String, user: User): List<Task> {
         val searchIsOpen = query.contains("is:open", ignoreCase = true)
         val searchIsClosed = query.contains("is:closed", ignoreCase = true)
         val searchState = if (searchIsOpen) Constants.TASK_OPEN else if (searchIsClosed) Constants.TASK_CLOSED  else ""
