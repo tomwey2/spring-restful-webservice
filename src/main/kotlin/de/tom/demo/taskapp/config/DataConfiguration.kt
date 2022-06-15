@@ -132,31 +132,45 @@ class DataConfiguration {
         taskService: TaskService,
         projectRepository: ProjectRepository
     ) = ApplicationRunner {
+        if (false) {
 
-        projectRepository.deleteAll()
-        taskService.deleteAll()
-        userRepository.deleteAll()
+            projectRepository.deleteAll()
+            taskService.deleteAll()
+            userRepository.deleteAll()
 
-        val dbProject = projectRepository.save(project.copy(id = null))
+            val dbProject = projectRepository.save(project.copy(id = null))
 
-        val userMap = mapOf(
-            johnDoe to userService.registerUser(johnDoe.name, johnDoe.username, johnDoe.email, johnDoe.password),
-            janeDoe to userService.registerUser(janeDoe.name, janeDoe.username, janeDoe.email, janeDoe.password),
-            bret to userService.registerUser(bret.name, bret.username, bret.email, bret.password),
-            delphine to userService.registerUser(delphine.name, delphine.username, delphine.email, delphine.password),
-            elwyn to userService.registerUser(elwyn.name, elwyn.username, elwyn.email, elwyn.password),
-            admin to userService.registerUser(admin.name, admin.username, admin.email, admin.password, listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER))
-        )
+            val userMap = mapOf(
+                johnDoe to userService.registerUser(johnDoe.name, johnDoe.username, johnDoe.email, johnDoe.password),
+                janeDoe to userService.registerUser(janeDoe.name, janeDoe.username, janeDoe.email, janeDoe.password),
+                bret to userService.registerUser(bret.name, bret.username, bret.email, bret.password),
+                delphine to userService.registerUser(
+                    delphine.name,
+                    delphine.username,
+                    delphine.email,
+                    delphine.password
+                ),
+                elwyn to userService.registerUser(elwyn.name, elwyn.username, elwyn.email, elwyn.password),
+                admin to userService.registerUser(
+                    admin.name,
+                    admin.username,
+                    admin.email,
+                    admin.password,
+                    listOf(Constants.ROLE_ADMIN, Constants.ROLE_USER)
+                )
+            )
 
-        testTasks.map { task: Task ->
-            val reportedBy: User = userMap[task.reportedBy]!!
-            var newTask = taskService.addTask(task.text, task.description, task.day, task.reminder, reportedBy, null)
-            if (task.state == Constants.TASK_CLOSED) {
-                newTask = taskService.changeState(newTask.id ?: "", task.state, reportedBy)
-            }
-            task.assignees.map {user: User ->
-                val assignee: User = userMap[user]!!
-                newTask = taskService.assignedUserToTask(newTask, assignee)
+            testTasks.map { task: Task ->
+                val reportedBy: User = userMap[task.reportedBy]!!
+                var newTask =
+                    taskService.addTask(task.text, task.description, task.day, task.reminder, reportedBy, null)
+                if (task.state == Constants.TASK_CLOSED) {
+                    newTask = taskService.changeState(newTask.id ?: "", task.state, reportedBy)
+                }
+                task.assignees.map { user: User ->
+                    val assignee: User = userMap[user]!!
+                    newTask = taskService.assignedUserToTask(newTask, assignee)
+                }
             }
         }
     }

@@ -8,9 +8,11 @@ import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
 import org.springframework.hateoas.CollectionModel
-import org.springframework.hateoas.EntityModel
+import org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE
 import org.springframework.hateoas.server.mvc.linkTo
+import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
+import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -86,7 +88,7 @@ class TaskController(
      */
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    fun get(@RequestParam(value = "query", required = false) query: String?): CollectionModel<EntityModel<Task>> {
+    fun get(@RequestParam(value = "query", required = false) query: String?): CollectionModel<TaskModel> {
         log.info("query=$query")
         val tasks = if (query == null)
             service.getTasks(userService.getLoggedInUser())
@@ -143,12 +145,16 @@ class TaskController(
      *      }
      *  }
      */
-    @GetMapping(path = ["/{id}"])
+    @GetMapping(headers = ["${HttpHeaders.ACCEPT}=${MediaType.APPLICATION_JSON_VALUE}",
+                            "${HttpHeaders.ACCEPT}=$HAL_JSON_VALUE"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
-    fun getById(@PathVariable id: String): EntityModel<Task> {
+    fun getById(@PathVariable id: String): ResponseEntity<TaskModel> {
         val task = service.getTaskOfUser(id, userService.getLoggedInUser())
-        return assembler.toModel(task)
+        return ResponseEntity.ok(assembler.toModel(task))
     }
+
 
 
     /**
