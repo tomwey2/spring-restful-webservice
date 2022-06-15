@@ -91,7 +91,7 @@ class TaskController(
     fun get(@RequestParam(value = "query", required = false) query: String?): CollectionModel<TaskModel> {
         log.info("query=$query")
         val tasks = if (query == null)
-            service.getTasks(userService.getLoggedInUser())
+            service.getAllTasksOfUser(userService.getLoggedInUser())
         else
             service.getTasksByQuery(query, userService.getLoggedInUser())
         val entities = tasks.map { task -> assembler.toModel(task) }
@@ -151,7 +151,7 @@ class TaskController(
         path = ["/{id}"])
     @ResponseStatus(HttpStatus.OK)
     fun getById(@PathVariable id: String): ResponseEntity<TaskModel> {
-        val task = service.getTaskOfUser(id, userService.getLoggedInUser())
+        val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
         return ResponseEntity.ok(assembler.toModel(task))
     }
 
@@ -327,7 +327,7 @@ class TaskController(
     @GetMapping(path = ["/{id}/reportedby"])
     @ResponseStatus(HttpStatus.OK)
     fun getReporterOfTaskWithId(@PathVariable id: String): User =
-        service.getTaskOfUser(id, userService.getLoggedInUser())
+        service.getTaskByIdOfUser(id, userService.getLoggedInUser())
             .reportedBy
 
     /**
@@ -370,7 +370,7 @@ class TaskController(
     @GetMapping(path = ["/{id}/assignees"])
     @ResponseStatus(HttpStatus.OK)
     fun getAssigneesOfTaskWithId(@PathVariable id: String): List<User> =
-        service.getTaskOfUser(id, userService.getLoggedInUser())
+        service.getTaskByIdOfUser(id, userService.getLoggedInUser())
             .assignees
 
 
@@ -383,7 +383,7 @@ class TaskController(
     @PutMapping(path = ["/{id}/assignees"])
     @ResponseStatus(HttpStatus.OK)
     fun changeAssignees(@PathVariable id: String, @RequestBody assignees: List<User>): Task {
-        val task = service.getTaskOfUser(id, userService.getLoggedInUser())
+        val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
         return service.changeAssignedUsers(task, assignees)
     }
 
@@ -391,20 +391,20 @@ class TaskController(
     @GetMapping(path = ["/{id}/labels"])
     @ResponseStatus(HttpStatus.OK)
     fun getLabelsOfTaskWithId(@PathVariable id: String): List<String> =
-        service.getTaskOfUser(id, userService.getLoggedInUser())
+        service.getTaskByIdOfUser(id, userService.getLoggedInUser())
             .labels
 
     @PutMapping(path = ["/{id}/labels"])
     @ResponseStatus(HttpStatus.OK)
     fun changeLabels(@PathVariable id: String, @RequestBody labels: List<String>): Task {
-        val task = service.getTaskOfUser(id, userService.getLoggedInUser())
+        val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
         return service.changeLabels(task, labels)
     }
 
     @PostMapping(path = ["/{id}/close"])
     fun closeTask(@PathVariable id: String): ResponseEntity<Any> {
         val loggedInUser = userService.getLoggedInUser()
-        val task = service.getTaskOfUser(id, loggedInUser)
+        val task = service.getTaskByIdOfUser(id, loggedInUser)
         if (task.state == Constants.TASK_OPEN) {
             return ResponseEntity.ok(service.changeState(id, Constants.TASK_CLOSED, loggedInUser))
         }
@@ -463,7 +463,7 @@ class TaskController(
     @PostMapping(path = ["/{id}/open"])
     fun openTask(@PathVariable id: String): ResponseEntity<Any> {
         val loggedInUser = userService.getLoggedInUser()
-        val task = service.getTaskOfUser(id, loggedInUser)
+        val task = service.getTaskByIdOfUser(id, loggedInUser)
         if (task.state == Constants.TASK_CLOSED) {
             return ResponseEntity.ok(service.changeState(id, Constants.TASK_OPEN, loggedInUser))
         }

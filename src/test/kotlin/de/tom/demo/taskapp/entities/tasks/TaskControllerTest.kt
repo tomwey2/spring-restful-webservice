@@ -107,7 +107,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
-        every { service.getTaskOfUser(testTask.id!!, any()) } returns testTask  // hint: any() because logged-in user has another id
+        every { service.getTaskByIdOfUser(testTask.id!!, any()) } returns testTask  // hint: any() because logged-in user has another id
 
         val jsonResponse = mockMvc.perform(
             get("${Constants.PATH_TASKS}/${testTask.id}")
@@ -127,7 +127,7 @@ class TaskControllerTest(@Autowired val mockMvc: MockMvc, @Autowired val objectM
 
         // mock the services
         every { userService.getLoggedInUser() } returns johnDoe
-        every { service.getTaskOfUser(idNotExist, any()) } throws TaskNotFoundException(idNotExist)  // hint: any() because logged-in user has another id
+        every { service.getTaskByIdOfUser(idNotExist, any()) } throws TaskNotFoundException(idNotExist)  // hint: any() because logged-in user has another id
 
         val result = mockMvc.perform(
             get("${Constants.PATH_TASKS}/$idNotExist")

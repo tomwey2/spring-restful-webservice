@@ -111,7 +111,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val updatedReminder = true
 
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
-        val initialTaskList: List<Task> = service.getTasks(johnDoe)
+        val initialTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
@@ -124,7 +124,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val result: Task = objectMapper.readValue(response.body.toStr())
         assertThat(result.id).isNotEmpty
         assertThat(result.text).isEqualTo("New Task")
-        val updatedTaskList: List<Task> = service.getTasks(johnDoe)
+        val updatedTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
         assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size + 1)
     }
 
@@ -133,7 +133,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
         // request all tasks of user and select one randomly
         val testTask: Task = getAllTasksOfUser(loginResult).random()
-        val initialTaskList: List<Task> = service.getTasks(johnDoe)
+        val initialTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/${testTask.id}"
@@ -142,7 +142,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // check the response
         assertThat(deleteResponse.statusCode).isEqualTo(HttpStatus.OK)
-        val updatedTaskList: List<Task> = service.getTasks(johnDoe)
+        val updatedTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
         assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size - 1)
 
         val getRequest = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))

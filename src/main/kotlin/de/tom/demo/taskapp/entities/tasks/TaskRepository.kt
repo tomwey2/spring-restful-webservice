@@ -9,11 +9,12 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 interface TaskRepository : MongoRepository<Task, String> {
-    @Query("{ \$or : [{'assignees' : { \$elemMatch : {'email': '?0' }}}, {'reportedBy.email' : '?0' }]}")
-    fun findAllUserTasks(email: String): List<Task>
+    //@Query("{ \$or : [{'reportedBy.username' : { \$regex: '(?i)?0(?-i)'}, 'assignees.username' : { \$regex: '(?i)?1(?-i)'} }]}")
+    @Query("{ \$or : [{'assignees' : { \$elemMatch : {'username': '?0' }}}, {'reportedBy.username' : '?0' }]}")
+    fun findAllUserTasks(username: String): List<Task>
 
-    @Query("{'reportedBy.email' : '?0' }")
-    fun findAllTasksReportedByUser(email: String): List<Task>
+    @Query("{'reportedBy.username' : { \$regex: '(?i)?1(?-i)'}}")
+    fun findAllTasksReportedByUser(username: String): List<Task>
 
     @Query("{'state': '?1', 'reportedBy.email' : '?0' }")
     fun findTasksReportedByUser(email: String, state: String): List<Task>

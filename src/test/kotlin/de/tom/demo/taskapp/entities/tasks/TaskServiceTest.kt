@@ -64,27 +64,27 @@ class TaskServiceTest {
 
     @Test
     fun `Get all Tasks of user with role ROLE_USER`() {
-        val tasks = underTest.getTasks(johnDoe)
+        val tasks = underTest.getAllTasksOfUser(johnDoe)
         assertThat(tasks).hasSameSizeAs(DataConfiguration().getAllTasksOfUser(johnDoe))
     }
 
     @Test
     fun `Get all Tasks of user with role ROLE_ADMIN`() {
-        val result = underTest.getTasks(admin)
+        val result = underTest.getAllTasksOfUser(admin)
         assertThat(result).hasSameSizeAs(DataConfiguration().getAllTasksOfUser(admin))
     }
 
     @Test
     fun `Get one Tasks by id of user with role ROLE_USER`() {
         val testTask = DataConfiguration().getOneRandomTestTaskReportedByUser(johnDoe)
-        val result = underTest.getTaskOfUser(testTask.id!!, johnDoe)
+        val result = underTest.getTaskByIdOfUser(testTask.id!!, johnDoe)
         assertThat(result).usingComparator(TaskTestUtils.taskComparator).isEqualTo(testTask)
     }
 
     @Test
     fun `Failed to get one Tasks by id of user with role ROLE_ADMIN`() {
-        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskOfUser("", admin) }
-        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskOfUser(idNotExist, admin) }
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskByIdOfUser("", admin) }
+        assertThrows( TaskNotFoundException::class.java) { underTest.getTaskByIdOfUser(idNotExist, admin) }
     }
 
     @Test

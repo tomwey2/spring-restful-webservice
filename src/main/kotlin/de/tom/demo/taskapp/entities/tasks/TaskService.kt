@@ -5,6 +5,7 @@ import de.tom.demo.taskapp.TaskNotFoundException
 import de.tom.demo.taskapp.entities.*
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
@@ -19,9 +20,19 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * Gets all tasks which are either reported by or assigned to the user.
      * If the user has the ADMIN role then gets all tasks.
      */
-    fun getTasks(user: User): List<Task> {
-        val tasks = if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.email)
-        return tasks
+    fun getAllTasksOfUser(user: User): List<Task> {
+        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.username)
+    }
+
+    /**
+     * Get the task of the user with a given id.
+     */
+    fun getTaskByIdOfUser(id: String, user: User): Task {
+        val task = db.findByIdOrNull(id) ?: throw TaskNotFoundException(id)
+        if (task.reportedBy.username != user.username && !task.assignees.map(User::username).contains(user.username)) {
+            throw TaskNotFoundException(id)
+        }
+        return task
     }
 
     /**
@@ -29,7 +40,10 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * The admin gets all tasks.
      */
     fun getAllTasksReportedByUser(user: User): List<Task> {
-        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllTasksReportedByUser(user.email)
+        return if (user.roles.contains(Constants.ROLE_ADMIN))
+                db.findAll()
+            else
+                db.findAllTasksReportedByUser(user.username)
     }
 
     /**
@@ -73,7 +87,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
             db.findTasksByReporter(searchReporterName)
         } else if (!searchReporter && searchAssignee) {
             db.findTasksByAssignee(searchAssigneeName)
-        } else db.findAll()
+        } else getAllTasksOfUser(user)
 
         val resultTasks = if (searchIsOpen)
                 tasks.filter { it.state == Constants.TASK_OPEN }
@@ -92,14 +106,6 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
     fun getAllTasksAssignedToUser(user: User): List<Task> {
         //val user = userService.getLoggedInUser()
         return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllTasksAssignedToUser(user.email)
-    }
-
-    /**
-     * Get the task of the user with a given id.
-     */
-    fun getTaskOfUser(id: String, user: User): Task {
-        val tasks = getAllTasksReportedByUser(user)
-        return tasks.firstOrNull { task: Task -> task.id.equals(id) } ?: throw TaskNotFoundException(id)
     }
 
     /**
@@ -137,7 +143,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * Delete a user task that have the given id.
      */
     fun deleteTaskOfUser(id: String, user: User): Unit {
-        val task: Task = getTaskOfUser(id, user)
+        val task: Task = getTaskByIdOfUser(id, user)
         db.delete(task)
     }
 
@@ -155,13 +161,13 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      */
     fun updateTask(id: String, text: String, description: String?, day: LocalDate, reminder: Boolean, state: String?,
                    user: User): Task {
-        val updatedTask = getTaskOfUser(id, user).copy(text = text, description = description, day = day,
+        val updatedTask = getTaskByIdOfUser(id, user).copy(text = text, description = description, day = day,
             reminder = reminder, state = state ?: Constants.TASK_OPEN)
         return db.save(updatedTask)
     }
 
     fun changeState(id: String, state: String, user: User): Task {
-        val updatedTask = getTaskOfUser(id, user).copy(state = state)
+        val updatedTask = getTaskByIdOfUser(id, user).copy(state = state)
         return db.save(updatedTask)
     }
 }
