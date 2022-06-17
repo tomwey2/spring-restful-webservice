@@ -20,12 +20,22 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * Gets all tasks which are either reported by or assigned to the user.
      * If the user has the ADMIN role then gets all tasks.
      */
-    fun getAllTasksOfUser(user: User): List<Task> {
-        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.username)
+    fun getAllTasksOfUser(user: User): TasksQueryResult {
+        val tasks = if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.username)
+        val amountOfOpenTasks = tasks.count { it.state == Constants.TASK_OPEN }
+        val amountOfClosedTasks = tasks.count { it.state == Constants.TASK_CLOSED }
+        return TasksQueryResult(amountOfOpenTasks, amountOfClosedTasks, tasks)
     }
 
+// TODO: paging
+//    fun getAllTasksOfUser2(user: User): Page<Task> {
+//        return db.findAll(Pageable.unpaged())
+//    }
+
     /**
-     * Get the task of the user with a given id.
+     * Get the task of the user with a given task id.
+     * Throw Not Found exception if this task not exists or if the user is either the reporter nor in
+     * the list of the assignees.
      */
     fun getTaskByIdOfUser(id: String, user: User): Task {
         val task = db.findByIdOrNull(id) ?: throw TaskNotFoundException(id)
@@ -33,6 +43,14 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
             throw TaskNotFoundException(id)
         }
         return task
+    }
+
+    /**
+     * Get the task with a given task id.
+     * Throw Not Found exception if this task not exists.
+     */
+    fun getTaskById(id: String): Task {
+        return db.findByIdOrNull(id) ?: throw TaskNotFoundException(id)
     }
 
     /**
@@ -63,7 +81,7 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * assignedto:<name>. The key:value pairs must be seperated by semicolon.
      * If <name> has the value '@me' then the value is replaced by the name of the given username.
      */
-    fun getTasksByQuery(query: String, user: User): List<Task> {
+    fun getTasksByQuery(query: String, user: User): TasksQueryResult {
         val searchIsOpen = query.contains("is:open", ignoreCase = true)
         val searchIsClosed = query.contains("is:closed", ignoreCase = true)
         val searchState = if (searchIsOpen) Constants.TASK_OPEN else if (searchIsClosed) Constants.TASK_CLOSED  else ""
@@ -87,36 +105,28 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
             db.findTasksByReporter(searchReporterName)
         } else if (!searchReporter && searchAssignee) {
             db.findTasksByAssignee(searchAssigneeName)
-        } else getAllTasksOfUser(user)
+        } else if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllUserTasks(user.username)
 
+        val amountOfOpenTasks = tasks.count { it.state == Constants.TASK_OPEN }
+        val amountOfClosedTasks = tasks.count { it.state == Constants.TASK_CLOSED }
         val resultTasks = if (searchIsOpen)
                 tasks.filter { it.state == Constants.TASK_OPEN }
             else if (searchIsClosed)
                 tasks.filter { it.state == Constants.TASK_CLOSED }
             else listOf<Task>()
 
-        return tasks
+        return TasksQueryResult(amountOfOpenTasks, amountOfClosedTasks, resultTasks)
     }
 
-
-    /**
-     * Gets all tasks that are assigned to the user.
-     * The admin gets all tasks.
-     */
-    fun getAllTasksAssignedToUser(user: User): List<Task> {
-        //val user = userService.getLoggedInUser()
-        return if (user.roles.contains(Constants.ROLE_ADMIN)) db.findAll() else db.findAllTasksAssignedToUser(user.email)
-    }
 
     /**
      * Add a new task and assign it to a project. The task must have a user that reported the task.
      * It can have optionally a user who is assigned to it.
      */
     fun addTask(text: String, description: String?, day: LocalDate, reminder: Boolean,
-                reportedBy: User, assignedTo: User?): Task {
-        val assignees = if (assignedTo != null) listOf(assignedTo) else listOf()
+                reportedBy: User): Task {
         val newTask = Task(null, text, description, day, reminder,
-            Constants.TASK_OPEN, listOf(), assignees, reportedBy)
+            Constants.TASK_OPEN, listOf(), listOf(), reportedBy)
         return db.save(newTask)
     }
 
@@ -130,13 +140,13 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
      * Change the list of users that are assigned to the task with id
      * (i.e. replace the old list of users with the new one).
      */
-    fun changeAssignedUsers(task: Task, assignees: List<User>): Task =
+    fun updateAssignedUsers(task: Task, assignees: List<User>): Task =
         db.save(task.copy(assignees = assignees))
 
     /**
      * Change the list of labels of the task with id
      */
-    fun changeLabels(task: Task, labels: List<String>): Task =
+    fun updateLabels(task: Task, labels: List<String>): Task =
         db.save(task.copy(labels = labels))
 
     /**
@@ -156,17 +166,20 @@ class TaskService(val db: TaskRepository, val userService: UserService) {
     }
 
     /**
-     * Update the content of a task. That can be the text, day or the reminder flag.
+     * Update the content of a task with id. That can be the text, day or the reminder flag.
      * TODO: add the description field
      */
-    fun updateTask(id: String, text: String, description: String?, day: LocalDate, reminder: Boolean, state: String?,
+    fun updateTask(id: String, text: String, description: String?, day: LocalDate, reminder: Boolean,
                    user: User): Task {
         val updatedTask = getTaskByIdOfUser(id, user).copy(text = text, description = description, day = day,
-            reminder = reminder, state = state ?: Constants.TASK_OPEN)
+            reminder = reminder)
         return db.save(updatedTask)
     }
 
-    fun changeState(id: String, state: String, user: User): Task {
+    /**
+     * Update the state of a task with id.
+     */
+    fun updateState(id: String, state: String, user: User): Task {
         val updatedTask = getTaskByIdOfUser(id, user).copy(state = state)
         return db.save(updatedTask)
     }

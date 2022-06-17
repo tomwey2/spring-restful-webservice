@@ -7,7 +7,7 @@ import de.tom.demo.taskapp.entities.User
 import de.tom.demo.taskapp.entities.projects.ProjectService
 import de.tom.demo.taskapp.entities.users.UserService
 import org.slf4j.LoggerFactory
-import org.springframework.hateoas.CollectionModel
+import org.springframework.data.web.PagedResourcesAssembler
 import org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE
 import org.springframework.hateoas.server.mvc.linkTo
 import org.springframework.http.HttpHeaders
@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.net.URI
 
 /**
  * REST Controller for the tasks resource with GET, POST, PUT and DELETE methods.
@@ -24,7 +25,10 @@ import org.springframework.web.bind.annotation.*
 @RequestMapping(Constants.PATH_TASKS)
 class TaskController(
     val service: TaskService, val userService: UserService,
-    val projectService: ProjectService, private val assembler: TaskModelAssembler
+    val projectService: ProjectService,
+    private val taskModelAssembler: TaskModelAssembler,
+    private val taskListModelAssembler: TaskListModelAssembler,
+    val pagedResourcesAssembler: PagedResourcesAssembler<Task>
 ) {
     private val log = LoggerFactory.getLogger(this.javaClass)
 
@@ -53,50 +57,65 @@ class TaskController(
      *
      * Example value of response content:
      * {
-     *  "_embedded": {
-     *      taskList: [
-     *          {
-     *              "id": "6274b0f846439e7351056517",
-     *              "text": "Food shopping",
-     *              "description": "One time in week food must be bought.",
-     *              "day": "2022-03-01", "reminder": true,
-     *              "state": "Open", "labels": [],
-     *              "assignees": [],
-     *              "reportedBy": "/api/users/6274b02b46439e7351056510",
-     *              "consistOf": "/api/projects/6274b02a46439e735105650f",
-     *              "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
-     *              "_links": {
-     *                  "self": {
-     *                      "href": "http://localhost:5000/api/tasks/6274b0f846439e7351056517"
-     *                  },
-     *                  "tasks": {
-     *                      "href": "http://localhost:5000/api/tasks{?query}",
-     *                      "templated": true
+     *  "open": 3,
+     *  "closed": 1
+     *  "taskList": {
+     *      "_embedded": {
+     *          taskList: [
+     *              {
+     *                  "id": "6274b0f846439e7351056517",
+     *                  "text": "Food shopping",
+     *                  "description": "One time in week food must be bought.",
+     *                  "day": "2022-03-01", "reminder": true,
+     *                  "state": "Open", "labels": [],
+     *                  "assignees": [],
+     *                  "reportedBy": "/api/users/6274b02b46439e7351056510",
+     *                  "consistOf": "/api/projects/6274b02a46439e735105650f",
+     *                  "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
+     *                  "_links": {
+     *                      "self": {
+     *                          "href": "http://localhost:5000/api/tasks/6274b0f846439e7351056517"
+     *                      },
      *                  }
-     *              }
+     *              },
+     *              ...
+     *              ]
      *          },
-     *          ...
-     *          ]
-     *      }
-     *      "_links": {
-     *          "self": {
-     *              "href": "http://localhost:5000/api/tasks{?query}",
-     *              "templated": true
+     *          "_links": {
+     *              "self": {
+     *                  "href": "http://localhost:5000/api/tasks{?query}",
+     *                  "templated": true
+     *              }
      *          }
      *      }
      *  }
      */
-    @GetMapping
+    @GetMapping(
+        headers = ["${HttpHeaders.ACCEPT}=${MediaType.APPLICATION_JSON_VALUE}",
+            "${HttpHeaders.ACCEPT}=$HAL_JSON_VALUE"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
     @ResponseStatus(HttpStatus.OK)
-    fun get(@RequestParam(value = "query", required = false) query: String?): CollectionModel<TaskModel> {
+    fun get(@RequestParam(value = "query", required = false) query: String?): ResponseEntity<TaskListModel> {
         log.info("query=$query")
-        val tasks = if (query == null)
+        val tasksInfo = if (query == null)
             service.getAllTasksOfUser(userService.getLoggedInUser())
         else
             service.getTasksByQuery(query, userService.getLoggedInUser())
-        val entities = tasks.map { task -> assembler.toModel(task) }
-        return CollectionModel.of(entities, linkTo<TaskController> { get(query) }.withSelfRel())
+
+        val taskList = TaskList(query, tasksInfo.open, tasksInfo.closed,
+            tasksInfo.tasks.map { task -> taskModelAssembler.toModel(task) })
+        return ResponseEntity.ok(taskListModelAssembler.toModel(taskList))
     }
+
+// TODO
+//    fun getWithPaging(@RequestParam(value = "query", required = false) query: String?):
+//            ResponseEntity<PagedModel<TaskModel>> {
+//        log.info("query=$query")
+//        val tasks: Page<Task> = service.getAllTasksOfUser2(userService.getLoggedInUser())
+//        val pagedModel = pagedResourcesAssembler.toModel(tasks, taskModelAssembler)
+//        return ResponseEntity.ok(pagedModel)
+//    }
 
     /**
      * GET /api/tasks/{id}
@@ -138,23 +157,23 @@ class TaskController(
      *          "self": {
      *              "href": "http://localhost:5000/api/tasks/6274b0f846439e7351056517"
      *          },
-     *          "tasks": {
-     *              "href": "http://localhost:5000/api/tasks{?query}",
-     *              "templated": true
+     *          "close": {
+     *              "href": "http://localhost:5000/api/tasks/6274b0f846439e7351056517/close",
      *          }
      *      }
      *  }
      */
-    @GetMapping(headers = ["${HttpHeaders.ACCEPT}=${MediaType.APPLICATION_JSON_VALUE}",
-                            "${HttpHeaders.ACCEPT}=$HAL_JSON_VALUE"],
+    @GetMapping(
+        headers = ["${HttpHeaders.ACCEPT}=${MediaType.APPLICATION_JSON_VALUE}",
+            "${HttpHeaders.ACCEPT}=$HAL_JSON_VALUE"],
         produces = [MediaType.APPLICATION_JSON_VALUE],
-        path = ["/{id}"])
+        path = ["/{id}"]
+    )
     @ResponseStatus(HttpStatus.OK)
     fun getById(@PathVariable id: String): ResponseEntity<TaskModel> {
         val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
-        return ResponseEntity.ok(assembler.toModel(task))
+        return ResponseEntity.ok(taskModelAssembler.toModel(task))
     }
-
 
 
     /**
@@ -203,18 +222,23 @@ class TaskController(
      *      "createdAt": "2022-05-06T09:24:08.66346", "updatedAt": null
      *  }
      */
-    @PostMapping(path = [""])
+    @PostMapping(
+        headers = ["${HttpHeaders.ACCEPT}=${MediaType.APPLICATION_JSON_VALUE}",
+            "${HttpHeaders.ACCEPT}=$HAL_JSON_VALUE"],
+        produces = [MediaType.APPLICATION_JSON_VALUE],
+        path = [""])
     @ResponseStatus(HttpStatus.CREATED)
-    fun post(@RequestBody body: TaskForm): Task =
+    fun post(@RequestBody body: TaskForm): ResponseEntity<TaskModel> {
         if (body.text.isEmpty())
             throw TaskNotValidException("add task fields: text, day, reminder")
         else {
             val reportedBy = userService.getLoggedInUser()
-            service.addTask(
-                body.text, body.description, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
-                reportedBy, null
-            )
+            val task = service.addTask(body.text, body.description, TaskUtils.convertStringToLocalDate(body.day),
+                body.reminder, reportedBy)
+            val location = linkTo<TaskController>{ getById(task.id!!) }.withSelfRel()
+            return ResponseEntity.created(URI.create(location.href)).body(taskModelAssembler.toModel(task))
         }
+    }
 
     /**
      * DELETE /api/tasks/{id}
@@ -296,8 +320,7 @@ class TaskController(
     fun put(@PathVariable id: String, @RequestBody body: TaskForm): Task =
         service.updateTask(
             id, body.text, body.description, TaskUtils.convertStringToLocalDate(body.day), body.reminder,
-            body.state, userService.getLoggedInUser()
-        )
+            userService.getLoggedInUser())
 
     /**
      * GET /api/tasks/{id}/reportedby
@@ -384,7 +407,7 @@ class TaskController(
     @ResponseStatus(HttpStatus.OK)
     fun changeAssignees(@PathVariable id: String, @RequestBody assignees: List<User>): Task {
         val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
-        return service.changeAssignedUsers(task, assignees)
+        return service.updateAssignedUsers(task, assignees)
     }
 
 
@@ -398,7 +421,7 @@ class TaskController(
     @ResponseStatus(HttpStatus.OK)
     fun changeLabels(@PathVariable id: String, @RequestBody labels: List<String>): Task {
         val task = service.getTaskByIdOfUser(id, userService.getLoggedInUser())
-        return service.changeLabels(task, labels)
+        return service.updateLabels(task, labels)
     }
 
     @PostMapping(path = ["/{id}/close"])
@@ -406,7 +429,7 @@ class TaskController(
         val loggedInUser = userService.getLoggedInUser()
         val task = service.getTaskByIdOfUser(id, loggedInUser)
         if (task.state == Constants.TASK_OPEN) {
-            return ResponseEntity.ok(service.changeState(id, Constants.TASK_CLOSED, loggedInUser))
+            return ResponseEntity.ok(service.updateState(id, Constants.TASK_CLOSED, loggedInUser))
         }
         return ResponseEntity.badRequest()
             .body("Task status is already " + task.state + ".");
@@ -465,7 +488,7 @@ class TaskController(
         val loggedInUser = userService.getLoggedInUser()
         val task = service.getTaskByIdOfUser(id, loggedInUser)
         if (task.state == Constants.TASK_CLOSED) {
-            return ResponseEntity.ok(service.changeState(id, Constants.TASK_OPEN, loggedInUser))
+            return ResponseEntity.ok(service.updateState(id, Constants.TASK_OPEN, loggedInUser))
         }
         return ResponseEntity.badRequest()
             .body("Task status is already " + task.state + ".");

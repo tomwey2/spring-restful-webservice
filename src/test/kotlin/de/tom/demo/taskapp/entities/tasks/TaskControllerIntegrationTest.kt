@@ -6,6 +6,7 @@ import de.tom.demo.taskapp.Constants
 import de.tom.demo.taskapp.config.DataConfiguration
 import de.tom.demo.taskapp.entities.LoginResponseMessage
 import de.tom.demo.taskapp.entities.TaskForm
+import de.tom.demo.taskapp.entities.TasksQueryResult
 import de.tom.demo.taskapp.entities.User
 import io.mockk.InternalPlatformDsl.toStr
 import org.assertj.core.api.Assertions.assertThat
@@ -43,7 +44,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_FORM_URLENCODED
         val params: MultiValueMap<String, String> = LinkedMultiValueMap()
-        params.add("email", user.email)
+        params.add("username", user.username)
         params.add("password", user.password)
 
         val request = HttpEntity<MultiValueMap<String, String>>(params, headers)
@@ -66,7 +67,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val response = client.exchange(url, HttpMethod.GET, HttpEntity<Any>(headers), String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 
-        val result: List<Task> = objectMapper.readValue(response.body.toStr())
+        val result: List<Task> = objectMapper.readerFor(Task::class.java).readValue(response.body.toStr())
         return result
     }
 
@@ -76,7 +77,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val response = client.exchange(url, HttpMethod.GET, HttpEntity<Any>(headers), String::class.java)
         assertThat(response.statusCode).isEqualTo(HttpStatus.OK)
 
-        val result: Task = objectMapper.readValue(response.body.toStr())
+        val result: Task = objectMapper.readerFor(Task::class.java).readValue(response.body.toStr())
         return result
     }
 
@@ -111,11 +112,11 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val updatedReminder = true
 
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
-        val initialTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
+        val initialTaskList: TasksQueryResult = service.getAllTasksOfUser(johnDoe)
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/"
-        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, Constants.TASK_OPEN)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.postForEntity(url, request, String::class.java)
 
@@ -124,8 +125,8 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val result: Task = objectMapper.readValue(response.body.toStr())
         assertThat(result.id).isNotEmpty
         assertThat(result.text).isEqualTo("New Task")
-        val updatedTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
-        assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size + 1)
+        val updatedTaskList: TasksQueryResult = service.getAllTasksOfUser(johnDoe)
+        assertThat(updatedTaskList.tasks.size).isEqualTo(initialTaskList.tasks.size + 1)
     }
 
     @Test
@@ -133,7 +134,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
         val loginResult: LoginResponseMessage = loginTestUser(johnDoe)
         // request all tasks of user and select one randomly
         val testTask: Task = getAllTasksOfUser(loginResult).random()
-        val initialTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
+        val initialTaskList: TasksQueryResult = service.getAllTasksOfUser(johnDoe)
 
         // prepare and send the request
         val url = "${Constants.URI_LOCALHOST}:${port}${Constants.PATH_TASKS}/${testTask.id}"
@@ -142,8 +143,8 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // check the response
         assertThat(deleteResponse.statusCode).isEqualTo(HttpStatus.OK)
-        val updatedTaskList: List<Task> = service.getAllTasksOfUser(johnDoe)
-        assertThat(updatedTaskList.size).isEqualTo(initialTaskList.size - 1)
+        val updatedTaskList: TasksQueryResult = service.getAllTasksOfUser(johnDoe)
+        assertThat(updatedTaskList.tasks.size).isEqualTo(initialTaskList.tasks.size - 1)
 
         val getRequest = HttpEntity<String>(getAuthorizationHeader(loginResult.accessToken))
         val getResponse = client.exchange(url, HttpMethod.GET, getRequest, String::class.java)
@@ -162,7 +163,7 @@ class TaskControllerIntegrationTest(@Autowired val client: TestRestTemplate,
 
         // prepare and send the request
         val url = "http://localhost:${port}${Constants.PATH_TASKS}/${testTask.id}"
-        val body = TaskForm(updatedText, null, updatedDay, updatedReminder, Constants.TASK_OPEN)
+        val body = TaskForm(updatedText, null, updatedDay, updatedReminder)
         val request = HttpEntity(body, getAuthorizationHeader(loginResult.accessToken))
         val response: ResponseEntity<String> = client.exchange(url, HttpMethod.PUT, request, String::class.java)
 
